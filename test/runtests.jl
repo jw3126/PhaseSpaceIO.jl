@@ -29,5 +29,10 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
     p = read_particle(io, h)
     @test p === p_ref
     @test eof(io)
+
+    # PhaseSpace
+    phsp = PhaseSpaceIO.load(path, PhaseSpace)
+    @test phsp.particles == ps
+    # @test phsp.header == h
 end
 

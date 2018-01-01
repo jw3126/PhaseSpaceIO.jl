@@ -1,4 +1,4 @@
-export Particle, ParticleType, Header
+export Particle, ParticleType, Header, PhaseSpace
 export photon, electron, positron, neutron, proton
 
 @enum ParticleType photon=1 electron=2 positron=3 neutron=4 proton=5
@@ -57,8 +57,18 @@ struct Header{Nf, Ni}
     w::Nullable{Float32}
     
     weight::Nullable{Float32}
-
 end
+
+struct PhaseSpace{H <: Header, P}
+    header::H
+    particles::P
+    function PhaseSpace{H,P}(header, particles) where{H, P}
+        @argcheck eltype(particles) == ptype(H)
+        new(header, particles)
+    end
+end
+
+PhaseSpace(h,ps) = PhaseSpace{typeof(h), typeof(ps)}(h,ps)
 
 function Header{Nf, Ni}() where {Nf, Ni}
     args = fill(Nullable{Float32}(), 7)

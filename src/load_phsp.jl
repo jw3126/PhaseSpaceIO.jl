@@ -74,9 +74,11 @@ end
     ret
 end
 
-ptype(h::Header{Nf, Ni}) where {Nf, Ni} = Particle{Nf, Ni}
+ptype(h::Type{Header{Nf, Ni}}) where {Nf, Ni} = Particle{Nf, Ni}
+ptype(::Type) = error("$T has no ptype")
+ptype(h) = ptype(typeof(h))
 
-function readphsp(io::IO, h::Header)
+@noinline function readphsp(io::IO, h::Header)
     P = ptype(h)
     ret = P[]
     while !eof(io)
