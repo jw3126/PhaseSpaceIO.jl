@@ -1,3 +1,33 @@
+const MANDATORY_KEYWORDS = [
+:IAEA_INDEX,
+:TITLE,
+:FILE_TYPE,
+:CHECKSUM,
+:RECORD_CONTENTS,
+:RECORD_CONSTANT,
+:RECORD_LENGTH,
+:BYTE_ORDER,
+:TRANSPORT_PARAMETERS,
+:MACHINE_TYPE,
+:MONTE_CARLO_CODE_VERSION,
+:GLOBAL_PHOTON_ENERGY_CUTOFF,
+:GLOBAL_PARTICLE_ENERGY_CUTOFF,
+:COORDINATE_SYSTEM_DESCRIPTION,
+]
+# $ORIG_HISTORIES:
+
+function validate_header_dict(d)
+    for key in MANDATORY_KEYWORDS
+        @argcheck key ∈ keys(d)
+    end
+    ft = parse(Int, stripcomments(d[:FILE_TYPE]))
+    if ft == 0 # phase space
+        @argcheck :ORIG_HISTORIES ∈ keys(d)
+        @argcheck :PARTICLES ∈ keys(d)
+    elseif ft == 1 # event generator
+        @argcheck :INPUT_FILE_FOR_EVENT_GENERATOR ∈ keys(d)
+    end
+end
 
 const RKEY = r"\$(.*):"
 
@@ -6,7 +36,7 @@ isemptyline(s) = strip(s) == ""
 parsekey(line) = Symbol(match(RKEY, line)[1])
 stripcomments(s) = strip(first(split(s, "//")))
 
-function read_header_dict(io::IO)
+function read_header_dict(io::IO; validate::Bool=false)
     d = OrderedDict{Symbol, String}()
     val_lines = String[]
     line = readline(io)
@@ -24,6 +54,9 @@ function read_header_dict(io::IO)
     end
     d[key] = join(val_lines, '\n')
     @assert eof(io)
+    if validate
+        validate_header_dict(d)
+    end
     d
 end
 
@@ -42,6 +75,9 @@ function Header(d::Associative)
 
     contents = cleanup_record(d[:RECORD_CONTENTS])
     constants = cleanup_record(d[:RECORD_CONSTANT])
+
+    read_next!(T, c) = parse(T, shift!(c))
+    read_next!(::Type{Bool}, c) = Bool(parse(Int, shift!(c)))
     function read_next_default!(contents, constants)
         stored_in_phsp = read_next!(Bool, contents)
         stored_in_header = !stored_in_phsp
@@ -52,7 +88,6 @@ function Header(d::Associative)
             Nullable{T}()
         end
     end
-    read_next!(T, c) = T(parse(Int, shift!(c)))
     
     x = read_next_default!(contents, constants)
     y = read_next_default!(contents, constants)
@@ -64,9 +99,7 @@ function Header(d::Associative)
     wt = read_next_default!(contents, constants)
     Nf = read_next!(Int, contents)
     Ni = read_next!(Int, contents)
-    generic_integer_variable_stored = read_next!(Bool, contents)
-    @assert generic_integer_variable_stored == false
-    @assert isempty(contents)
+    # @assert isempty(contents)
     @assert isempty(constants)
     Header{Nf, Ni}(x,y,z, u,v,w, wt)
 end

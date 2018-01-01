@@ -57,6 +57,7 @@ struct Header{Nf, Ni}
     w::Nullable{Float32}
     
     weight::Nullable{Float32}
+
 end
 
 struct PhaseSpace{H <: Header, P}

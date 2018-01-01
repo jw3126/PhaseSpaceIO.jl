@@ -26,7 +26,7 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
     mark(io)
     write_particle(io, p_ref, h)
     reset(io)
-    p = read_particle(io, h)
+    p = @inferred read_particle(io, h)
     @test p === p_ref
     @test eof(io)
 
