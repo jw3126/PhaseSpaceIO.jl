@@ -1,6 +1,9 @@
 __precompile__()
 module PhaseSpaceIO
 using ArgCheck
+# macro argcheck(code)
+#     quote end
+# end
 using DataStructures
 using QuickTypes
 
