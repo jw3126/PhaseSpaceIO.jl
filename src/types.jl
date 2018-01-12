@@ -49,7 +49,7 @@ end
 
 for pt in instances(ParticleType)
     fname = Symbol("is", pt)
-    @eval $fname(x::Particle) = x.typ == pt
+    @eval $fname(x::Particle) = x.particle_type == $pt
     eval(Expr(:export, fname))
 end
 
