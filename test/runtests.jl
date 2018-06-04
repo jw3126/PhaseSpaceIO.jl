@@ -1,5 +1,6 @@
 using PhaseSpaceIO
 using Base.Test
+using Setfield
 
 using PhaseSpaceIO: ptype, readphsp, read_particle, write_particle
 
@@ -23,9 +24,8 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
     @test first(ps) == p_ref
     
     io = IOBuffer()
-    mark(io)
     write_particle(io, p_ref, h)
-    reset(io)
+    seekstart(io)
     p = @inferred read_particle(io, h)
     @test p === p_ref
     @test eof(io)
@@ -36,3 +36,9 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
     # @test phsp.header == h
 end
 
+@testset "Setfield" begin
+    p = Particle(1,2,3,4,5,6,0,0,1,true,(),())
+    q = @set p.x = 10
+    @test q.x == 10
+    @test p.x == 4
+end

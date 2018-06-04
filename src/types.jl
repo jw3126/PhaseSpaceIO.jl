@@ -31,6 +31,18 @@ struct Particle{Nf, Ni}
         new(typ, E, weight, x,y,z, u,v,w, new_history, extra_floats, extra_ints)
     end
 end
+function Particle(typ, E, weight, 
+                          x,y,z, 
+                          u,v,w, 
+                          new_history, 
+                          extra_floats::NTuple{Nf,Float32}, extra_ints::NTuple{Ni,Int32}) where {Nf, Ni}
+
+    Particle{Nf, Ni}(typ, E, weight, 
+                     x,y,z, u,v,w, 
+                     new_history, 
+                     extra_floats, extra_ints)
+end
+
 
 function Base.isapprox(p1::Particle, p2::Particle)
     p1.particle_type == p2.particle_type &&
