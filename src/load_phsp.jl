@@ -134,15 +134,3 @@ end
 ptype(h::Type{Header{Nf, Ni}}) where {Nf, Ni} = Particle{Nf, Ni}
 ptype(::Type) = error("$T has no ptype")
 ptype(h) = ptype(typeof(h))
-
-@noinline function readphsp(io::IO, h::Header)
-    P = ptype(h)
-    ret = P[]
-    buf = Vector{UInt8}()
-    bufsize = compressed_particle_sizeof(h)
-    while !eof(io)
-        p = read_particle_explicit_buf(io, h, buf, bufsize)
-        push!(ret, p)
-    end
-    ret
-end

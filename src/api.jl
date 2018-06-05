@@ -1,15 +1,17 @@
+export open_phsp
 const EXT_HEADER = ".IAEAheader"
 const EXT_PHSP   = ".IAEAphsp"
 
-function load(path::AbstractString, T)
-    open(path) do io
-        load(io, T)
-    end
+@noinline function _apply(f,iter::PhaseSpaceIterator)
+    f(iter)
 end
-function load(io::IO, ::Type{Header})
-    read_header(io)
+function open_phsp(f, path)
+    phsp = open_phsp(path)
+    ret = _apply(f,phsp)
+    close(phsp)
+    ret
 end
-function load(path::AbstractString, ::Type{PhaseSpace})
+function open_phsp(path)
     stem, ext = splitext(path)
     if !(ext in (EXT_HEADER, EXT_PHSP))
         stem = path
@@ -20,8 +22,6 @@ function load(path::AbstractString, ::Type{PhaseSpace})
     @argcheck ispath(header_path)
     @argcheck ispath(phsp_path)
     h = load(header_path, Header)
-    ps = open(phsp_path) do io
-        readphsp(io, h)
-    end
-    PhaseSpace(h, ps)
+    io = open(phsp_path)
+    PhaseSpaceIterator(io,h)
 end

@@ -1,3 +1,12 @@
+function load(path::AbstractString, T)
+    open(path) do io
+        load(io, T)
+    end
+end
+function load(io::IO, ::Type{Header})
+    read_header(io)
+end
+
 const MANDATORY_KEYWORDS = [
 :IAEA_INDEX,
 :TITLE,
@@ -101,6 +110,6 @@ function Header(d::Associative)
     Ni = read_next!(Int, contents)
     # @assert isempty(contents)
     @assert isempty(constants)
-    Header{Nf, Ni}(x,y,z, u,v,w, wt)
+    Header{Nf, Ni}(x=x,y=y,z=z, u=u,v=v,w=w, weight=wt)
 end
     

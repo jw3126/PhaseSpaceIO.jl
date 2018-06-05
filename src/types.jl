@@ -66,7 +66,6 @@ for pt in instances(ParticleType)
 end
 
 struct Header{Nf, Ni}
-
     # default values
     x::Nullable{Float32}
     y::Nullable{Float32}
@@ -77,21 +76,71 @@ struct Header{Nf, Ni}
     w::Nullable{Float32}
     
     weight::Nullable{Float32}
-
 end
 
-struct PhaseSpace{H <: Header, P}
+const _N = Nullable{Float32}()
+function Header{Nf, Ni}(;
+                        x=Nullable{Float32}(),
+                        y=Nullable{Float32}(),
+                        z=Nullable{Float32}(),
+                        u=Nullable{Float32}(),
+                        v=Nullable{Float32}(),
+                        w=Nullable{Float32}(),
+                        weight=Nullable{Float32}(),
+                       ) where {Nf, Ni}
+    args = fill(Nullable{Float32}(), 7)
+    Header{Nf, Ni}(x,y,z,u,v,w,weight)
+end
+
+
+abstract type AbstractPhaseSpace{H <: Header, P} end
+
+Base.eltype(::Type{AbstractPhaseSpace{H,P}}) where {H,P} = P
+
+struct PhaseSpaceIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
+    io::I
     header::H
-    particles::P
-    function PhaseSpace{H,P}(header, particles) where{H, P}
-        @argcheck eltype(particles) == ptype(H)
-        new(header, particles)
+    buf::Vector{UInt8}
+    bufsize::Int
+end
+
+function PhaseSpaceIterator(io::IO,h::Header)
+    H = typeof(h)
+    P = ptype(h)
+    I = typeof(io)
+    buf = Vector{UInt8}()
+    bufsize = compressed_particle_sizeof(h)
+    PhaseSpaceIterator{H,P,I}(io, h,buf,bufsize)
+end
+function read_next_nullable(iter::PhaseSpaceIterator)
+    io = iter.io
+    h = iter.header
+    P = ptype(h)
+    NP = Nullable{P}
+    if eof(iter.io)
+        NP()
+    else
+        p = read_particle_explicit_buf(io, h, iter.buf, iter.bufsize)
+        NP(p)
     end
 end
-
-PhaseSpace(h,ps) = PhaseSpace{typeof(h), typeof(ps)}(h,ps)
-
-function Header{Nf, Ni}() where {Nf, Ni}
-    args = fill(Nullable{Float32}(), 7)
-    Header{Nf, Ni}(args...)
+function Base.start(iter::PhaseSpaceIterator)
+    read_next_nullable(iter)
+end
+function Base.next(iter::PhaseSpaceIterator, state)
+    item = get(state)
+    state = read_next_nullable(iter)
+    item, state
+end
+function Base.done(iter::PhaseSpaceIterator, state)
+    isnull(state)
+end
+function Base.iteratorsize(iter::AbstractPhaseSpace) 
+    Base.SizeUnknown()
+end
+function Base.iteratorsize(iter::Base.Iterators.Take{<:AbstractPhaseSpace}) 
+    Base.iteratorsize(iter.xs)
+end
+function Base.close(iter::PhaseSpaceIterator)
+    close(iter.io)
 end

@@ -2,7 +2,7 @@ using PhaseSpaceIO
 using Base.Test
 using Setfield
 
-using PhaseSpaceIO: ptype, readphsp, read_particle, write_particle
+using PhaseSpaceIO: ptype, read_particle, write_particle
 
 assetpath(args...) = joinpath(@__DIR__, "assets", args...)
 
@@ -17,9 +17,7 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
         true, (), (13,))
     
     path = assetpath("some_file.IAEAphsp")
-    ps = open(path) do io
-        readphsp(io, h)
-    end
+    ps = open_phsp(collect, path)
     @test length(ps) == 1
     @test first(ps) == p_ref
     
@@ -29,11 +27,6 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
     p = @inferred read_particle(io, h)
     @test p === p_ref
     @test eof(io)
-
-    # PhaseSpace
-    phsp = PhaseSpaceIO.load(path, PhaseSpace)
-    @test phsp.particles == ps
-    # @test phsp.header == h
 end
 
 @testset "Setfield" begin
