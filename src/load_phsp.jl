@@ -3,18 +3,19 @@
     Expr(:call, :tuple, args...)
 end
 
-function compressed_particle_sizeof(h::Header{Nf, Ni}) where {Nf, Ni}
-    fieldsize(field) = isnull(field) ? 4 : 0
+function comporessed_particle_no_defaults_sizeof(h::Header{Nf, Ni}) where {Nf, Ni}
     1 + # typ
     4 + # energy
-    fieldsize(h.x) + 
-    fieldsize(h.y) + 
-    fieldsize(h.z) + 
-    fieldsize(h.u) + 
-    fieldsize(h.v) + 
-    fieldsize(h.weight) + 
+    12 + # x,y,z
+    8 + # u,v (w is not stored)
+    4 + # weight
     4 * Nf +
     4 * Ni
+end
+
+function compressed_particle_sizeof(h::Header{Nf, Ni}) where {Nf, Ni}
+    size_reduction_due_to_defaults = sizeof(h.default_particle_values)
+    comporessed_particle_no_defaults_sizeof(h) - size_reduction_due_to_defaults
 end
 
 const ByteBuffer = AbstractVector{UInt8}
@@ -30,39 +31,44 @@ function readbuf!(::Type{T}, buf::ByteBuffer) where {T}
 end
 
 function readbuf!(::Type{UInt8}, buf::ByteBuffer)
-    shift!(buf)
+    popfirst!(buf)
 end
 function readbuf!(T::Type{Int8}, buf::ByteBuffer)
     reinterpret(T, readbuf!(UInt8, buf))
 end
 
 function readbuf!(::Type{UInt32}, buf::ByteBuffer)
-    b4 = UInt32(shift!(buf)) << 0
-    b3 = UInt32(shift!(buf)) << 8
-    b2 = UInt32(shift!(buf)) << 16
-    b1 = UInt32(shift!(buf)) << 24
+    b4 = UInt32(popfirst!(buf)) << 0
+    b3 = UInt32(popfirst!(buf)) << 8
+    b2 = UInt32(popfirst!(buf)) << 16
+    b1 = UInt32(popfirst!(buf)) << 24
     b1 + b2 + b3 + b4
 end
 
-for item ∈ [:x, :y, :z, :u, :v, :weight]
-    fread = Symbol("readbuf_", item, "!")
-    fwrite = Symbol("write_", item)
-    @eval function $fread(buf::ByteBuffer, h::Header)
-        if isnull(h.$item)
-            readbuf!(Float32, buf)
-        else
-            get(h.$item)
-        end
+@generated function readbuf_default!(buf::ByteBuffer,
+                             ::Val{field},
+                             h::Header{Nf,Ni,NT}) where {field,Nf,Ni,NT}
+    if field in fieldnames(NT)
+        :(h.default_particle_values.$field)
+    else
+        :(readbuf!(Float32, buf))
     end
-    @eval function $fwrite(io::IO, p::Particle, h::Header)
-        val = isnull(h.$item) ? p.$item : get(h.$item)
-        write(io, val)
+end
+
+@generated function write_default(io::IO,
+                             ::Val{field},
+                             p::Particle,
+                             h::Header{Nf,Ni,NT}) where {field,Nf,Ni,NT}
+    if field in fieldnames(NT)
+        :(0)
+    else
+        :(write(io, p.$field))
     end
 end
 
 function read_particle(io::IO, h::Header)
     bufsize = compressed_particle_sizeof(h)
-    buf = Vector{UInt8}(bufsize)
+    buf = Vector{UInt8}(undef,bufsize)
     read_particle_explicit_buf(io, h, buf, bufsize)
 end
 
@@ -79,16 +85,16 @@ end
 
     P = ptype(h)
     typ8 = readbuf!(Int8, buf)
-    typ = ParticleType(abs(typ8))
+    typ = convert(ParticleType, abs(typ8))
     E = readbuf!(Float32, buf)
     new_history = E < 0
     E = abs(E)
-    x = readbuf_x!(buf, h)
-    y = readbuf_y!(buf, h)
-    z = readbuf_z!(buf, h)
-    u = readbuf_u!(buf, h)
-    v = readbuf_v!(buf, h)
-    weight = readbuf_weight!(buf, h)
+    x = readbuf_default!(buf, Val(:x), h)
+    y = readbuf_default!(buf, Val(:y), h)
+    z = readbuf_default!(buf, Val(:z), h)
+    u = readbuf_default!(buf, Val(:u), h)
+    v = readbuf_default!(buf, Val(:v), h)
+    weight = readbuf_default!(buf, Val(:weight), h)
     
     sign_w = Float32(-1)^(typ8 < 0)
     tmp = Float64(u)^2 + Float64(v)^2
@@ -112,7 +118,9 @@ end
     )
 end
 
-@noinline function write_particle(io::IO, p::Particle{Nf, Ni}, h::Header{Nf, Ni}) where {Nf, Ni}
+@noinline function write_particle(io::IO,
+                                  p::Particle{Nf, Ni},
+                                  h::Header{Nf, Ni}) where {Nf, Ni}
     typ8 = Int8(p.particle_type)
     sign_typ8 = Int8(-1)^(p.w < 0)
     typ8 = sign_typ8 * typ8
@@ -120,17 +128,21 @@ end
     E = sign_E * p.E
     ret = 0
     ret += write(io, typ8, E)
-    ret += write_x(io, p, h)
-    ret += write_y(io, p, h)
-    ret += write_z(io, p, h)
-    ret += write_u(io, p, h)
-    ret += write_v(io, p, h)
-    ret += write_weight(io, p, h)
-    ret += write(io, p.extra_floats...)
-    ret += write(io, p.extra_ints...)
+    ret += write_default(io, Val(:x), p, h)
+    ret += write_default(io, Val(:y), p, h)
+    ret += write_default(io, Val(:z), p, h)
+    ret += write_default(io, Val(:u), p, h)
+    ret += write_default(io, Val(:v), p, h)
+    ret += write_default(io, Val(:weight), p, h)
+    for f in p.extra_floats
+        ret += write(io, f)
+    end
+    for i in p.extra_ints
+        ret += write(io, i)
+    end
     ret
 end
 
-ptype(h::Type{Header{Nf, Ni}}) where {Nf, Ni} = Particle{Nf, Ni}
-ptype(::Type) = error("$T has no ptype")
+ptype(h::Type{Header{Nf, Ni, NT}}) where {Nf, Ni, NT} = Particle{Nf, Ni}
+ptype(T::Type) = error("$T has no ptype")
 ptype(h) = ptype(typeof(h))
