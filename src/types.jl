@@ -28,7 +28,10 @@ struct Particle{Nf, Ni}
         # @assert abs(u^2 + v^2 + w^2) ≈ 1
         @argcheck E >= 0.
         @argcheck weight >= 0.
-        new(typ, E, weight, x,y,z, u,v,w, new_history, extra_floats, extra_ints)
+        new(ParticleType(typ),
+            E, weight,
+            x,y,z, u,v,w,
+            new_history, extra_floats, extra_ints)
     end
 end
 function Particle(typ, E, weight, 
@@ -65,33 +68,20 @@ for pt in instances(ParticleType)
     eval(Expr(:export, fname))
 end
 
-struct Header{Nf, Ni}
-    # default values
-    x::Nullable{Float32}
-    y::Nullable{Float32}
-    z::Nullable{Float32}
-    
-    u::Nullable{Float32}
-    v::Nullable{Float32}
-    w::Nullable{Float32}
-    
-    weight::Nullable{Float32}
+struct Header{Nf, Ni, NT<:NamedTuple}
+    default_particle_values::NT
 end
 
-const _N = Nullable{Float32}()
 function Header{Nf, Ni}(;
-                        x=Nullable{Float32}(),
-                        y=Nullable{Float32}(),
-                        z=Nullable{Float32}(),
-                        u=Nullable{Float32}(),
-                        v=Nullable{Float32}(),
-                        w=Nullable{Float32}(),
-                        weight=Nullable{Float32}(),
+                        kw...
                        ) where {Nf, Ni}
-    args = fill(Nullable{Float32}(), 7)
-    Header{Nf, Ni}(x,y,z,u,v,w,weight)
+    for (keyword,val) in kw
+        @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
+    end
+    default_particle_values = map(Float32, NamedTuple(kw...))
+    NT = typeof(default_particle_values)
+    Header{Nf, Ni,NT}(default_particle_values)
 end
-
 
 abstract type AbstractPhaseSpace{H <: Header, P} end
 
@@ -113,27 +103,18 @@ function PhaseSpaceIterator(io::IO,h::Header)
     PhaseSpaceIterator{H,P,I}(io, h,buf,bufsize)
 end
 function read_next_nullable(iter::PhaseSpaceIterator)
+end
+function Base.iterate(iter::PhaseSpaceIterator, state...)
     io = iter.io
     h = iter.header
     P = ptype(h)
-    NP = Nullable{P}
     if eof(iter.io)
-        NP()
+        nothing
     else
         p = read_particle_explicit_buf(io, h, iter.buf, iter.bufsize)
-        NP(p)
+        dummy_state = nothing 
+        p, dummy_state
     end
-end
-function Base.start(iter::PhaseSpaceIterator)
-    read_next_nullable(iter)
-end
-function Base.next(iter::PhaseSpaceIterator, state)
-    item = get(state)
-    state = read_next_nullable(iter)
-    item, state
-end
-function Base.done(iter::PhaseSpaceIterator, state)
-    isnull(state)
 end
 function Base.iteratorsize(iter::AbstractPhaseSpace) 
     Base.SizeUnknown()

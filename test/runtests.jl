@@ -1,5 +1,5 @@
 using PhaseSpaceIO
-using Base.Test
+using Test
 using Setfield
 
 using PhaseSpaceIO: ptype, read_particle, write_particle
