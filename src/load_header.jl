@@ -40,7 +40,7 @@ end
 
 const RKEY = r"\$(.*):"
 
-iskeyline(s) = ismatch(RKEY, s)
+iskeyline(s) = occursin(RKEY, s)
 isemptyline(s) = strip(s) == ""
 parsekey(line) = Symbol(match(RKEY, line)[1])
 stripcomments(s) = strip(first(split(s, "//")))
@@ -80,13 +80,13 @@ function read_header(io::IO)
     Header(d)
 end
 
-function Header(d::Associative)
+function Header(d::AbstractDict)
 
     contents = cleanup_record(d[:RECORD_CONTENTS])
     constants = cleanup_record(d[:RECORD_CONSTANT])
 
-    read_next!(T, c) = parse(T, shift!(c))
-    read_next!(::Type{Bool}, c) = Bool(parse(Int, shift!(c)))
+    read_next!(T, c) = parse(T, popfirst!(c))
+    read_next!(::Type{Bool}, c) = Bool(parse(Int, popfirst!(c)))
     function add_next_default!(d,key,contents, constants)
         stored_in_phsp = read_next!(Bool, contents)
         stored_in_header = !stored_in_phsp

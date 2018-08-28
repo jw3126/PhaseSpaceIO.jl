@@ -2,6 +2,7 @@ export Particle, ParticleType, Header, PhaseSpace
 export photon, electron, positron, neutron, proton
 
 @enum ParticleType photon=1 electron=2 positron=3 neutron=4 proton=5
+Base.convert(::Type{ParticleType}, i::Integer) = ParticleType(i)
 
 struct Particle{Nf, Ni}
     particle_type::ParticleType
@@ -28,7 +29,7 @@ struct Particle{Nf, Ni}
         # @assert abs(u^2 + v^2 + w^2) ≈ 1
         @argcheck E >= 0.
         @argcheck weight >= 0.
-        new(ParticleType(typ),
+        new(convert(ParticleType,typ),
             E, weight,
             x,y,z, u,v,w,
             new_history, extra_floats, extra_ints)
@@ -116,11 +117,11 @@ function Base.iterate(iter::PhaseSpaceIterator, state...)
         p, dummy_state
     end
 end
-function Base.iteratorsize(iter::AbstractPhaseSpace) 
+function Base.IteratorSize(iter::AbstractPhaseSpace) 
     Base.SizeUnknown()
 end
-function Base.iteratorsize(iter::Base.Iterators.Take{<:AbstractPhaseSpace}) 
-    Base.iteratorsize(iter.xs)
+function Base.IteratorSize(iter::Base.Iterators.Take{<:AbstractPhaseSpace}) 
+    Base.IteratorSize(iter.xs)
 end
 function Base.close(iter::PhaseSpaceIterator)
     close(iter.io)

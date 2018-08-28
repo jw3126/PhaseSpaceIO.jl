@@ -31,17 +31,17 @@ function readbuf!(::Type{T}, buf::ByteBuffer) where {T}
 end
 
 function readbuf!(::Type{UInt8}, buf::ByteBuffer)
-    shift!(buf)
+    popfirst!(buf)
 end
 function readbuf!(T::Type{Int8}, buf::ByteBuffer)
     reinterpret(T, readbuf!(UInt8, buf))
 end
 
 function readbuf!(::Type{UInt32}, buf::ByteBuffer)
-    b4 = UInt32(shift!(buf)) << 0
-    b3 = UInt32(shift!(buf)) << 8
-    b2 = UInt32(shift!(buf)) << 16
-    b1 = UInt32(shift!(buf)) << 24
+    b4 = UInt32(popfirst!(buf)) << 0
+    b3 = UInt32(popfirst!(buf)) << 8
+    b2 = UInt32(popfirst!(buf)) << 16
+    b1 = UInt32(popfirst!(buf)) << 24
     b1 + b2 + b3 + b4
 end
 
@@ -68,7 +68,7 @@ end
 
 function read_particle(io::IO, h::Header)
     bufsize = compressed_particle_sizeof(h)
-    buf = Vector{UInt8}(bufsize)
+    buf = Vector{UInt8}(undef,bufsize)
     read_particle_explicit_buf(io, h, buf, bufsize)
 end
 
@@ -85,7 +85,7 @@ end
 
     P = ptype(h)
     typ8 = readbuf!(Int8, buf)
-    typ = ParticleType(abs(typ8))
+    typ = convert(ParticleType, abs(typ8))
     E = readbuf!(Float32, buf)
     new_history = E < 0
     E = abs(E)
