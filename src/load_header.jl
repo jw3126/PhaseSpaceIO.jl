@@ -3,7 +3,8 @@ function load(path::AbstractString, T)
         load(io, T)
     end
 end
-function load(io::IO, ::Type{Header})
+
+function load(io::IO, ::Type{RecordContents})
     read_header(io)
 end
 
@@ -77,10 +78,10 @@ end
 
 function read_header(io::IO)
     d = read_header_dict(io)
-    Header(d)
+    RecordContents(d)
 end
 
-function Header(d::AbstractDict)
+function RecordContents(d::AbstractDict)
 
     contents = cleanup_record(d[:RECORD_CONTENTS])
     constants = cleanup_record(d[:RECORD_CONSTANT])
@@ -108,9 +109,8 @@ function Header(d::AbstractDict)
     Nf = read_next!(Int, contents)
     Ni = read_next!(Int, contents)
     @assert isempty(constants)
-    default_particle_values = (;d...)
+    data = (;d...)
 
-    NT = typeof(default_particle_values)
-    Header{Nf, Ni,NT}(default_particle_values)
+    NT = typeof(data)
+    RecordContents{Nf, Ni,NT}(data)
 end
-    

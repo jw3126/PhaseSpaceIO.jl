@@ -1,5 +1,29 @@
-export Particle, ParticleType, Header, PhaseSpace
+export Particle, ParticleType, RecordContents, PhaseSpace
 export photon, electron, positron, neutron, proton
+export IAEAPath
+
+const EXT_HEADER = ".IAEAheader"
+const EXT_PHSP   = ".IAEAphsp"
+struct IAEAPath
+    header::String
+    phsp::String
+end
+IAEAPath(path::IAEAPath) = path
+
+function IAEAPath(path::AbstractString)
+    stem, ext = splitext(path)
+    if !(ext in (EXT_HEADER, EXT_PHSP))
+        stem = path
+    end
+    header_path = stem * EXT_HEADER
+    phsp_path = stem * EXT_PHSP
+    IAEAPath(header_path, phsp_path)
+end
+
+function Base.rm(path::IAEAPath;kw...)
+    rm(path.header;kw...)
+    rm(path.phsp;kw...)
+end
 
 @enum ParticleType photon=1 electron=2 positron=3 neutron=4 proton=5
 Base.convert(::Type{ParticleType}, i::Integer) = ParticleType(i)
@@ -31,20 +55,15 @@ function Particle(typ, E, weight,
                      extra_floats, extra_ints)
 end
 
-
-function Base.isapprox(p1::Particle, p2::Particle)
-    p1.particle_type == p2.particle_type &&
-    isapprox(p1.E, p2.E) &&
-    isapprox(p1.weight, p2.weight) &&
-    isapprox(p1.x, p2.x) &&
-    isapprox(p1.y, p2.y) &&
-    isapprox(p1.z, p2.z) &&
-    isapprox(p1.u, p2.u) &&
-    isapprox(p1.v, p2.v) &&
-    isapprox(p1.w, p2.w) &&
-    p1.new_history == p2.new_history &&
-    p1.extra_floats == p2.extra_floats &&
-    p1.extra_ints == p2.extra_ints
+function Base.isapprox(p1::Particle, p2::Particle;kw...)
+    p1.particle_type == p2.particle_type  &&
+    p1.new_history   == p2.new_history    &&
+    p1.extra_floats  == p2.extra_floats   &&
+    p1.extra_ints    == p2.extra_ints     &&
+    isapprox(p1.E,      p2.E;      kw...) &&
+    isapprox(p1.weight, p2.weight; kw...) &&
+    isapprox([p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z]; kw...) &&
+    isapprox([p1.u, p1.v, p1.w], [p2.u, p2.v, p2.w]; kw...)
 end
 
 for pt in instances(ParticleType)
@@ -53,31 +72,31 @@ for pt in instances(ParticleType)
     eval(Expr(:export, fname))
 end
 
-struct Header{Nf, Ni, NT<:NamedTuple}
-    default_particle_values::NT
+struct RecordContents{Nf, Ni, NT<:NamedTuple}
+    data::NT
 end
 
-function Header{Nf, Ni}(;
+function RecordContents{Nf, Ni}(;
                         kw...
                        ) where {Nf, Ni}
     for (keyword,val) in kw
         @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
     end
-    default_particle_values = map(Float32, NamedTuple(kw...))
-    NT = typeof(default_particle_values)
-    Header{Nf, Ni,NT}(default_particle_values)
+    data = map(Float32, (;kw...))
+    NT = typeof(data)
+    RecordContents{Nf, Ni,NT}(data)
 end
 
-abstract type AbstractPhaseSpace{H <: Header, P} end
+abstract type AbstractPhaseSpace{H <: RecordContents, P} end
 
 Base.eltype(::Type{<:AbstractPhaseSpace{H,P}}) where {H,P} = P
 
 struct PhaseSpaceIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
     io::I
     header::H
-    buf::Vector{UInt8}
     # currently read(io, Float32) allocates,
     # but read!(io, buf) does not
+    buf::Vector{UInt8}
     length::Int64
 end
 
@@ -93,7 +112,7 @@ end
 
 Base.length(p::PhaseSpaceIterator) = p.length
 
-function PhaseSpaceIterator(io::IO,h::Header)
+function PhaseSpaceIterator(io::IO,h::RecordContents)
     H = typeof(h)
     P = ptype(h)
     I = typeof(io)

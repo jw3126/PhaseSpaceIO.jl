@@ -12,7 +12,7 @@ function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
     u = randn(Float32)
     v = randn(Float32)
     w = randn(Float32)
-    scale = 1/sqrt(x^2 + y^2 + z^2)
+    scale = 1/sqrt(u^2 + v^2 + w^2)
     u *= scale
     v *= scale
     w *= scale

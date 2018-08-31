@@ -3,7 +3,7 @@
     Expr(:call, :tuple, args...)
 end
 
-function comporessed_particle_no_defaults_sizeof(h::Header{Nf, Ni}) where {Nf, Ni}
+function comporessed_particle_no_defaults_sizeof(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     1 + # typ
     4 + # energy
     12 + # x,y,z
@@ -13,8 +13,8 @@ function comporessed_particle_no_defaults_sizeof(h::Header{Nf, Ni}) where {Nf, N
     4 * Ni
 end
 
-function compressed_particle_sizeof(h::Header{Nf, Ni}) where {Nf, Ni}
-    size_reduction_due_to_defaults = sizeof(h.default_particle_values)
+function compressed_particle_sizeof(h::RecordContents{Nf, Ni}) where {Nf, Ni}
+    size_reduction_due_to_defaults = sizeof(h.data)
     comporessed_particle_no_defaults_sizeof(h) - size_reduction_due_to_defaults
 end
 
@@ -47,9 +47,9 @@ end
 
 @generated function readbuf_default!(buf::ByteBuffer,
                              ::Val{field},
-                             h::Header{Nf,Ni,NT}) where {field,Nf,Ni,NT}
+                             h::RecordContents{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
-        :(h.default_particle_values.$field)
+        :(h.data.$field)
     else
         :(readbuf!(Float32, buf))
     end
@@ -58,10 +58,10 @@ end
 @generated function write_default(io::IO,
                              ::Val{field},
                              p::Particle,
-                             h::Header{Nf,Ni,NT}) where {field,Nf,Ni,NT}
+                             h::RecordContents{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
         quote
-            @assert p.$field == h.default_particle_values.$field
+            @assert p.$field == h.data.$field
             0
         end
     else
@@ -69,13 +69,13 @@ end
     end
 end
 
-function read_particle(io::IO, h::Header)
+function read_particle(io::IO, h::RecordContents)
     bufsize = compressed_particle_sizeof(h)
     buf = Vector{UInt8}(undef,bufsize)
     read_particle_explicit_buf(io, h, buf)
 end
 
-function read_particle_explicit_buf(io::IO, h::Header, buf::ByteBuffer)
+function read_particle_explicit_buf(io::IO, h::RecordContents, buf::ByteBuffer)
     bufsize = compressed_particle_sizeof(h)
     readbytes!(io, buf, bufsize)
     @assert length(buf) == bufsize
@@ -84,8 +84,7 @@ function read_particle_explicit_buf(io::IO, h::Header, buf::ByteBuffer)
     p
 end
 
-
-@noinline function readbuf_particle!(buf::ByteBuffer, h::Header{Nf, Ni}) where {Nf, Ni}
+@noinline function readbuf_particle!(buf::ByteBuffer, h::RecordContents{Nf, Ni}) where {Nf, Ni}
 
     P = ptype(h)
     typ8 = readbuf!(Int8, buf)
@@ -124,7 +123,7 @@ end
 
 @noinline function write_particle(io::IO,
                                   p::Particle{Nf, Ni},
-                                  h::Header{Nf, Ni}) where {Nf, Ni}
+                                  h::RecordContents{Nf, Ni}) where {Nf, Ni}
     typ8 = Int8(p.particle_type)
     sign_typ8 = Int8(-1)^(p.w < 0)
     typ8 = sign_typ8 * typ8
@@ -147,6 +146,6 @@ end
     ret
 end
 
-ptype(h::Type{Header{Nf, Ni, NT}}) where {Nf, Ni, NT} = Particle{Nf, Ni}
+ptype(h::Type{RecordContents{Nf, Ni, NT}}) where {Nf, Ni, NT} = Particle{Nf, Ni}
 ptype(T::Type) = error("$T has no ptype")
 ptype(h) = ptype(typeof(h))
