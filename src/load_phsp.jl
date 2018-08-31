@@ -60,7 +60,10 @@ end
                              p::Particle,
                              h::Header{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
-        :(0)
+        quote
+            @assert p.$field == h.default_particle_values.$field
+            0
+        end
     else
         :(write(io, p.$field))
     end

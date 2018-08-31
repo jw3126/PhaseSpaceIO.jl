@@ -1,4 +1,4 @@
-export Collect
+export Collect, energy
 
 struct Collect
     count::Int64
@@ -12,3 +12,5 @@ function (c::Collect)(iter)
     end
     return ret
 end
+
+energy(p::Particle) = p.E*p.weight
