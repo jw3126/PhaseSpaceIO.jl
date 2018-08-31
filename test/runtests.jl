@@ -35,3 +35,5 @@ end
     @test q.x == 10
     @test p.x == 4
 end
+
+include("test_experimental.jl")
