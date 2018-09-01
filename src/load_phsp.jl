@@ -72,10 +72,11 @@ end
 function read_particle(io::IO, h::Header)
     bufsize = compressed_particle_sizeof(h)
     buf = Vector{UInt8}(undef,bufsize)
-    read_particle_explicit_buf(io, h, buf, bufsize)
+    read_particle_explicit_buf(io, h, buf)
 end
 
-function read_particle_explicit_buf(io::IO, h::Header, buf::ByteBuffer, bufsize)
+function read_particle_explicit_buf(io::IO, h::Header, buf::ByteBuffer)
+    bufsize = compressed_particle_sizeof(h)
     readbytes!(io, buf, bufsize)
     @assert length(buf) == bufsize
     p = readbuf_particle!(buf, h)

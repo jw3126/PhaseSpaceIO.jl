@@ -92,7 +92,6 @@ struct PhaseSpaceIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
     io::I
     header::H
     buf::Vector{UInt8}
-    bufsize::Int
 end
 
 function PhaseSpaceIterator(io::IO,h::Header)
@@ -100,8 +99,7 @@ function PhaseSpaceIterator(io::IO,h::Header)
     P = ptype(h)
     I = typeof(io)
     buf = Vector{UInt8}()
-    bufsize = compressed_particle_sizeof(h)
-    PhaseSpaceIterator{H,P,I}(io, h,buf,bufsize)
+    PhaseSpaceIterator{H,P,I}(io, h,buf)
 end
 function read_next_nullable(iter::PhaseSpaceIterator)
 end
@@ -112,7 +110,7 @@ function Base.iterate(iter::PhaseSpaceIterator, state...)
     if eof(iter.io)
         nothing
     else
-        p = read_particle_explicit_buf(io, h, iter.buf, iter.bufsize)
+        p = read_particle_explicit_buf(io, h, iter.buf)
         dummy_state = nothing 
         p, dummy_state
     end
