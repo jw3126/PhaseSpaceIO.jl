@@ -2,6 +2,7 @@ module TestExperimental
 using Setfield
 using PhaseSpaceIO
 using Test
+using PhaseSpaceIO.Testing
 
 @testset "Collect" begin
     c = Collect(5)
@@ -16,6 +17,39 @@ end
     q = @set p.x = 10
     @test q.x == 10
     @test p.x == 4
+end
+
+@testset "histogram" begin
+    p = arbitrary(Particle{0,0})
+    p = @set p.E = 1
+    p = @set p.x = 1
+    p = @set p.weight = 1
+    p11_w1 = p
+    p11_w2 = @set p11_w1.weight = 2
+    p21_w1 = @set p11_w1.E = 2
+    p12_w1 = @set p11_w1.x = 2
+    edges = ([0,1.5,3],)
+    h = @inferred estimate_histogram(p->p.E,
+                                     [p11_w1, p21_w1],
+                                     edges = edges)
+    @test h.edges == edges
+    @test h.weights == [1,1]
+    
+    h = @inferred estimate_histogram(p->p.E,
+                                     [p11_w2, p11_w1, p21_w1],
+                                     edges=edges)
+    @test h.weights == [3,1]
+    h = @inferred estimate_histogram(p->p.E,
+                                     [p11_w2, p11_w1, p21_w1],
+                                     edges=edges, use_particle_weights=false)
+    @test h.weights == [2,1]
+    
+    edges = ([0,1.5,3], [0.9,1.1,2.1, 2.2])
+    h = @inferred estimate_histogram(p->p.E, p->p.x, 
+                                     [p11_w2, p12_w1, p12_w1, p21_w1],
+                                     edges=edges)
+    @test h.edges == edges
+    @test h.weights == [2 2 0; 1 0 0]
 end
 
 end
