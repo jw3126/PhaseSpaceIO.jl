@@ -13,5 +13,7 @@ include("load_phsp.jl")
 include("api.jl")
 include("download.jl")
 include("experimental.jl")
+include("getters.jl")
+include("testing.jl")
 
 end

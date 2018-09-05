@@ -13,4 +13,3 @@ function (c::Collect)(iter)
     return ret
 end
 
-energy(p::Particle) = p.E*p.weight
