@@ -30,4 +30,14 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
     @test eof(io)
 end
 
+
+@testset "test PhaseSpaceIterator" begin
+    path = assetpath("some_file.IAEAphsp")
+    phsp = open_phsp(path)
+    @test length(phsp) == 1
+    @test eltype(phsp) === Particle{0,1}
+    @test collect(phsp) == collect(phsp)
+    @test length(collect(phsp)) == 1
+    close(phsp)
+end
 end
