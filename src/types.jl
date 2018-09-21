@@ -17,24 +17,8 @@ struct Particle{Nf, Ni}
     new_history::Bool
     extra_floats::NTuple{Nf, Float32}
     extra_ints::NTuple{Ni, Int32}
-    # function Particle{Nf, Ni}(typ, E, weight, 
-    #                           x,y,z, 
-    #                           u,v,w, 
-    #                           new_history, 
-    #                           extra_floats, extra_ints) where {Nf, Ni}
-    #     # the unit direction assert is expensive 
-    #     # and allocated on julia v0.6 if phrased as argcheck
-    #     epsilon = Float32(1e-6)
-    #     @assert abs(u^2 + v^2 + w^2 -1) < epsilon
-    #     # @assert abs(u^2 + v^2 + w^2) ≈ 1
-    #     @argcheck E >= 0.
-    #     @argcheck weight >= 0.
-    #     new(convert(ParticleType,typ),
-    #         E, weight,
-    #         x,y,z, u,v,w,
-    #         new_history, extra_floats, extra_ints)
-    # end
 end
+
 function Particle(typ, E, weight, 
                           x,y,z, 
                           u,v,w, 
