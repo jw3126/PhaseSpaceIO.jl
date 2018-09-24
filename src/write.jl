@@ -86,20 +86,35 @@ function show_header(io::IO, w::PhaseSpaceWriter)
     showln_kv(io, :BYTE_ORDER, "1234")
     showln_kv(io, :ORIG_HISTORIES, "18446744073709551615")
     showln_kv(io, :PARTICLES, ga.length)
+    # TODO particle counts
     # $PHOTONS:
     # 1
     # 
-    # $TRANSPORT_PARAMETERS:
+    showln_kv(io, :TRANSPORT_PARAMETERS, "")
+    showln_kv(io, :MACHINE_TYPE, "")
+    showln_kv(io, :MONTE_CARLO_CODE_VERSION, "")
     # 
-    # $MACHINE_TYPE:
-    # 
-    # $MONTE_CARLO_CODE_VERSION:
-    # 
-    # $GLOBAL_PHOTON_ENERGY_CUTOFF:
-    #   0.00000 
-    # $GLOBAL_PARTICLE_ENERGY_CUTOFF:
-    #   0.00000 
-    # $COORDINATE_SYSTEM_DESCRIPTION:
+    showln_kv(io, :GLOBAL_PHOTON_ENERGY_CUTOFF, 0.0)
+    showln_kv(io, :GLOBAL_PARTICLE_ENERGY_CUTOFF, 0.0)
+    showln_kv(io, :COORDINATE_SYSTEM_DESCRIPTION, "")
+
+    println(io)
+    println(io, "// OPTIONAL INFORMATION")
+    println(io)
+    showln_kv(io, :BEAM_NAME, "")
+    showln_kv(io, :FIELD_SIZE, "")
+    showln_kv(io, :NOMINAL_SSD, "")
+    showln_kv(io, :MC_INPUT_FILENAME, "")
+    showln_kv(io, :VARIANCE_REDUCTION_TECHNIQUES, "")
+    showln_kv(io, :INITIAL_SOURCE_DESCRIPTION, "")
+    showln_kv(io, :PUBLISHED_REFERENCE, "")
+    showln_kv(io, :AUTHORS, "")
+    showln_kv(io, :INSTITUTION, "")
+    showln_kv(io, :LINK_VALIDATION, "")
+    showln_kv(io, :ADDITIONAL_NOTES, "Generated via PhaseSpaceIO.jl")
+    # # TODO:
+    # showln_kv(io, :STATISTICAL_INFORMATION_PARTICLES, "")
+    # showln_kv(io, :STATISTICAL_INFORMATION_GEOMETRY, "")
 end
 
 function extra_float_count(r::RecordContents{Nf, Ni, Nt}) where {Nf, Ni, Nt}

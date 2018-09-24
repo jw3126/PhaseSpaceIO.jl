@@ -42,6 +42,38 @@ end
     close(phsp)
 end
 
+function test_header_contents(path)
+    s = read(path, String)
+    for key in [
+        :IAEA_INDEX,
+        :TITLE,
+        :FILE_TYPE,
+        :CHECKSUM,
+        :RECORD_LENGTH,
+        :BYTE_ORDER,
+        :ORIG_HISTORIES,
+        :PARTICLES,
+        :TRANSPORT_PARAMETERS,
+        :MACHINE_TYPE,
+        :MONTE_CARLO_CODE_VERSION,
+        :GLOBAL_PHOTON_ENERGY_CUTOFF,
+        :GLOBAL_PARTICLE_ENERGY_CUTOFF,
+        :COORDINATE_SYSTEM_DESCRIPTION,
+        :BEAM_NAME,
+        :FIELD_SIZE,
+        :NOMINAL_SSD,
+        :MC_INPUT_FILENAME,
+        :VARIANCE_REDUCTION_TECHNIQUES,
+        :INITIAL_SOURCE_DESCRIPTION,
+        :PUBLISHED_REFERENCE,
+        :AUTHORS,
+        :INSTITUTION,
+        :LINK_VALIDATION,
+        :ADDITIONAL_NOTES,]
+        @test occursin(string(key), s)
+    end
+end
+
 @testset "test phsp_iterator phsp_writer" begin
     for _ in 1:5
         f = rand(1:3)
@@ -59,6 +91,8 @@ end
         end
         @test ispath(path.header)
         @test ispath(path.phsp)
+        test_header_contents(path.header)
+
         ps_reload = phsp_iterator(collect, path)
         @test all(ps .≈ ps_reload)
         rm(path)
