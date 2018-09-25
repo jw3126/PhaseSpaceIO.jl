@@ -29,23 +29,23 @@ end
     p21_w1 = @set p11_w1.E = 2
     p12_w1 = @set p11_w1.x = 2
     edges = ([0,1.5,3],)
-    h = @inferred marginals(p->p.E,
+    h = @inferred histmap(p->p.E,
                                      [p11_w1, p21_w1],
                                      edges = edges)
     @test h.edges == edges
     @test h.weights == [1,1]
     
-    h = @inferred marginals(p->p.E,
+    h = @inferred histmap(p->p.E,
                                      [p11_w2, p11_w1, p21_w1],
                                      edges=edges)
     @test h.weights == [3,1]
-    h = @inferred marginals(p->p.E,
+    h = @inferred histmap(p->p.E,
                                      [p11_w2, p11_w1, p21_w1],
                                      edges=edges, use_particle_weights=false)
     @test h.weights == [2,1]
     
     edges = ([0,1.5,3], [0.9,1.1,2.1, 2.2])
-    h = @inferred marginals(p->p.E, p->p.x,
+    h = @inferred histmap(p->p.E, p->p.x,
                                      [p11_w2, p12_w1, p12_w1, p21_w1],
                                      edges=edges)
     @test h.edges == edges

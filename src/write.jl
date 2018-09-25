@@ -1,4 +1,3 @@
-
 mutable struct GeneratedAttributes
     length::Int64
     counts::Dict{ParticleType, Int64}
@@ -58,63 +57,71 @@ function Base.write(io::PhaseSpaceWriter, p::Particle)
     ret
 end
 
-function show_key(io::IO, k)
+function Base.write(w::PhaseSpaceWriter, ps)
+    ret = 0
+    for p in ps
+        ret += write(w,p)
+    end
+    ret
+end
+
+function print_key(io::IO, k)
     println(io,'$',k,":")
 end
-function show_val(io, v)
+function print_val(io, v)
     if v != ""
         println(io,v)
     end
 end
-function showln_kv(io::IO, k, v)
-    show_key(io,k)
-    show_val(io,v)
+function println_kv(io::IO, k, v)
+    print_key(io,k)
+    print_val(io,v)
     println(io)
 end
 
-function show_header(io::IO, w::PhaseSpaceWriter)
-    showln_kv(io, :IAEA_INDEX, "0 // test header")
-    showln_kv(io, :TITLE, "")
-    showln_kv(io, :FILE_TYPE, 0)
+function print_header(io::IO, w::PhaseSpaceWriter)
+    println_kv(io, :IAEA_INDEX, "0 // test header")
+    println_kv(io, :TITLE, "")
+    println_kv(io, :FILE_TYPE, 0)
     r = w.record_contents
     ga = w.generated_attributes
     record_length = compressed_particle_sizeof(r)
     checksum = ga.length * record_length
-    showln_kv(io, :CHECKSUM, checksum)
-    show_record_contents(io, r)
-    showln_kv(io, :RECORD_LENGTH, record_length)
-    showln_kv(io, :BYTE_ORDER, "1234")
-    showln_kv(io, :ORIG_HISTORIES, "18446744073709551615")
-    showln_kv(io, :PARTICLES, ga.length)
+    println_kv(io, :CHECKSUM, checksum)
+    print_record_contents(io, r)
+    println_kv(io, :RECORD_LENGTH, record_length)
+    println_kv(io, :BYTE_ORDER, "1234")
+    println_kv(io, :ORIG_HISTORIES, "18446744073709551615")
+    println_kv(io, :PARTICLES, ga.length)
     # TODO particle counts
     # $PHOTONS:
     # 1
     # 
-    showln_kv(io, :TRANSPORT_PARAMETERS, "")
-    showln_kv(io, :MACHINE_TYPE, "")
-    showln_kv(io, :MONTE_CARLO_CODE_VERSION, "")
+    println_kv(io, :TRANSPORT_PARAMETERS, "")
+    println_kv(io, :MACHINE_TYPE, "")
+    println_kv(io, :MONTE_CARLO_CODE_VERSION, "")
     # 
-    showln_kv(io, :GLOBAL_PHOTON_ENERGY_CUTOFF, 0.0)
-    showln_kv(io, :GLOBAL_PARTICLE_ENERGY_CUTOFF, 0.0)
-    showln_kv(io, :COORDINATE_SYSTEM_DESCRIPTION, "")
+    println_kv(io, :GLOBAL_PHOTON_ENERGY_CUTOFF, 0.0)
+    println_kv(io, :GLOBAL_PARTICLE_ENERGY_CUTOFF, 0.0)
+    println_kv(io, :COORDINATE_SYSTEM_DESCRIPTION, "")
 
     println(io)
     println(io, "// OPTIONAL INFORMATION")
     println(io)
-    showln_kv(io, :BEAM_NAME, "")
-    showln_kv(io, :FIELD_SIZE, "")
-    showln_kv(io, :NOMINAL_SSD, "")
-    showln_kv(io, :MC_INPUT_FILENAME, "")
-    showln_kv(io, :VARIANCE_REDUCTION_TECHNIQUES, "")
-    showln_kv(io, :INITIAL_SOURCE_DESCRIPTION, "")
-    showln_kv(io, :PUBLISHED_REFERENCE, "")
-    showln_kv(io, :AUTHORS, "")
-    showln_kv(io, :INSTITUTION, "")
-    showln_kv(io, :LINK_VALIDATION, "")
-    showln_kv(io, :ADDITIONAL_NOTES, "Generated via PhaseSpaceIO.jl")
+    println_kv(io, :BEAM_NAME, "")
+    println_kv(io, :FIELD_SIZE, "")
+    println_kv(io, :NOMINAL_SSD, "")
+    println_kv(io, :MC_INPUT_FILENAME, "")
+    println_kv(io, :VARIANCE_REDUCTION_TECHNIQUES, "")
+    println_kv(io, :INITIAL_SOURCE_DESCRIPTION, "")
+    println_kv(io, :PUBLISHED_REFERENCE, "")
+    println_kv(io, :AUTHORS, "")
+    println_kv(io, :INSTITUTION, "")
+    println_kv(io, :LINK_VALIDATION, "")
+    println_kv(io, :ADDITIONAL_NOTES, "Generated via PhaseSpaceIO.jl")
     # # TODO:
-    # showln_kv(io, :STATISTICAL_INFORMATION_PARTICLES, "")
-    # showln_kv(io, :STATISTICAL_INFORMATION_GEOMETRY, "")
+    # println_kv(io, :STATISTICAL_INFORMATION_PARTICLES, "")
+    # println_kv(io, :STATISTICAL_INFORMATION_GEOMETRY, "")
 end
 
 function extra_float_count(r::RecordContents{Nf, Ni, Nt}) where {Nf, Ni, Nt}
@@ -125,7 +132,7 @@ function extra_long_count(r::RecordContents{Nf, Ni, Nt}) where {Nf, Ni, Nt}
     Ni
 end
 
-function show_record_contents(io::IO, r::RecordContents)
+function print_record_contents(io::IO, r::RecordContents)
     # $RECORD_CONTENTS:
     # 1     // X is stored ?
     # 1     // Y is stored ?
@@ -144,7 +151,7 @@ function show_record_contents(io::IO, r::RecordContents)
     # 33
     t = r.data
     
-    show_key(io, "RECORD_CONTENTS")
+    print_key(io, "RECORD_CONTENTS")
     record_constants = Float32[]
     for propstr in ["X","Y","Z", "U","V","W", "Weight"]
         field = Symbol(string(propstr))
@@ -163,7 +170,7 @@ function show_record_contents(io::IO, r::RecordContents)
     println(io, "0     // Generic integer variable stored in the extralong array [ 0]")
     println(io)
     
-    show_key(io, "RECORD_CONSTANT")
+    print_key(io, "RECORD_CONSTANT")
     for c in record_constants
         println(c)
     end
@@ -179,7 +186,7 @@ end
 phsp_writer(path) = phsp_writer(IAEAPath(path))
 
 function Base.close(w::PhaseSpaceWriter)
-    show_header(w.io_header, w)
+    print_header(w.io_header, w)
     close(w.io_header)
     close(w.io_phsp)
 end

@@ -32,4 +32,3 @@ function download_phase_space(key; header_path=key * EXT_HEADER, phsp_path= key*
     ret_phsp = download(phsp_url, phsp_path)
     ret_header, ret_phsp
 end
-

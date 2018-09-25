@@ -1,6 +1,5 @@
 export Collect
-export marginals
-export spectrum
+export histmap
 using StatsBase
 
 struct Collect
@@ -22,7 +21,7 @@ function map_many_functions(getters, particles) where {N}
     end
 end
 
-function marginals(getters_particles...;
+function histmap(getters_particles...;
     edges=nothing,
     closed=:right,
     use_particle_weights=true,
@@ -41,5 +40,3 @@ function marginals(getters_particles...;
         fit(Histogram, data, weight, edges; closed=closed, kw...)
     end
 end
-
-spectrum(particles;kw...) = marginals(p->p.E, particles;kw...)
