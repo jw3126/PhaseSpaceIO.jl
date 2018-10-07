@@ -29,7 +29,7 @@ end
 Base.convert(::Type{ParticleType}, i::Integer) = ParticleType(i)
 
 struct Particle{Nf, Ni}
-    particle_type::ParticleType
+    typ::ParticleType
     E::Float32
     weight::Float32
     x::Float32
@@ -49,14 +49,26 @@ function Particle(typ, E, weight,
                           new_history, 
                           extra_floats::NTuple{Nf,Float32}, extra_ints::NTuple{Ni,Int32}) where {Nf, Ni}
 
-    Particle{Nf, Ni}(typ, E, weight, 
-                     x,y,z, u,v,w, 
-                     new_history, 
+    Particle{Nf, Ni}(typ, E, weight,
+                     x,y,z, u,v,w,
+                     new_history,
                      extra_floats, extra_ints)
 end
 
+function Particle(;typ,E,weight=1,x,y,z,u,v,w,new_history=true,
+                  extra_floats=(),extra_ints=())
+    Particle(typ, E, weight,
+                     x,y,z, u,v,w,
+                     new_history,
+                     extra_floats, extra_ints)
+end
+
+function Base.show(io::IO, p::Particle)
+    print(io, "Particle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
+end
+
 function Base.isapprox(p1::Particle, p2::Particle;kw...)
-    p1.particle_type == p2.particle_type  &&
+    p1.typ == p2.typ  &&
     p1.new_history   == p2.new_history    &&
     p1.extra_floats  == p2.extra_floats   &&
     p1.extra_ints    == p2.extra_ints     &&
@@ -68,7 +80,7 @@ end
 
 for pt in instances(ParticleType)
     fname = Symbol("is", pt)
-    @eval $fname(x::Particle) = x.particle_type == $pt
+    @eval $fname(x::Particle) = x.typ == $pt
     eval(Expr(:export, fname))
 end
 

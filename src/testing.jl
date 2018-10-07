@@ -3,7 +3,7 @@ using PhaseSpaceIO: Particle, ParticleType
 export arbitrary
 
 function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
-    particle_type = rand([instances(ParticleType)...])
+    typ = rand([instances(ParticleType)...])
     E = 100*rand(Float32)
     weight = rand(Float32)
     x = randn(Float32)
@@ -19,7 +19,7 @@ function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
     new_history  = rand(Bool)
     extra_floats = tuple(randn(Float32, Nf)...)
     extra_ints   = tuple(rand(Int32, Ni)...)
-    Particle{Nf,Ni}(particle_type,
+    Particle{Nf,Ni}(typ,
                     E,
                     weight,
                     x,y,z,

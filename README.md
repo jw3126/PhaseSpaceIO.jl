@@ -9,18 +9,19 @@
 julia> using PhaseSpaceIO
 
 julia> path = joinpath(dirname(pathof(PhaseSpaceIO)), "..", "test", "assets","some_file.IAEAphsp");
+
 julia> ps = phsp_iterator(collect,path)
 1-element Array{Particle{0,1},1}:
- Particle{0,1}(photon::ParticleType = 1, 1.0f0, 2.0f0, 3.0f0, 4.0f0, 5.0f0, 0.53259337f0, 0.3302265f0, -0.7792912f0, true, (), (13,))
+ Particle(typ=photon, E=1.0, weight=2.0, x=3.0, y=4.0, z=5.0, u=0.53259337, v=0.3302265, w=-0.7792912, new_history=true, extra_floats=(), extra_ints=(13,))
 
 julia> dir = mkpath(tempname())
-"/tmp/juliavg1Oci"
+"/tmp/julia7uigbI"
 
 julia> readdir(dir)
 0-element Array{String,1}
 
 julia> path = joinpath(dir, "hello")
-"/tmp/juliavg1Oci/hello"
+"/tmp/julia7uigbI/hello"
 
 julia> phsp_writer(path, RecordContents{0,1}()) do w
            for p in ps
