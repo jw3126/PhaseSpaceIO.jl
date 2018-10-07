@@ -40,7 +40,7 @@ function Base.write(io::PhaseSpaceWriter, p::Particle)
     ret = write_particle(io.io_phsp, p, io.record_contents)
     
     ga = io.generated_attributes
-    typ = p.particle_type
+    typ = p.typ
     increment(ga.counts, typ, 1)
     ga.length += 1
     increment(ga.energy_sum, typ, p.E * p.weight)

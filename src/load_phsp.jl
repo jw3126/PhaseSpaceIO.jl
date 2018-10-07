@@ -124,7 +124,7 @@ end
 @noinline function write_particle(io::IO,
                                   p::Particle{Nf, Ni},
                                   h::RecordContents{Nf, Ni}) where {Nf, Ni}
-    typ8 = Int8(p.particle_type)
+    typ8 = Int8(p.typ)
     sign_typ8 = Int8(-1)^(p.w < 0)
     typ8 = sign_typ8 * typ8
     sign_E = Float32(-1)^(p.new_history)
