@@ -1,3 +1,4 @@
+module TestCore
 using PhaseSpaceIO
 using Test
 using Base.Meta
@@ -13,4 +14,5 @@ using Base.Meta
                  
     ex = Meta.parse(s)
     @test eval(ex) === p
+end
 end
