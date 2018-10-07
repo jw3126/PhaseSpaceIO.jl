@@ -1,20 +1,20 @@
-export phsp_iterator
-export phsp_writer
+export iaea_iterator
+export iaea_writer
 
-function phsp_writer end
+function iaea_writer end
 
 @noinline function _apply(f,iter::PhaseSpaceIterator)
     f(iter)
 end
-function phsp_iterator(f, path)
-    phsp = phsp_iterator(path)
+function iaea_iterator(f, path)
+    phsp = iaea_iterator(path)
     ret = _apply(f,phsp)
     close(phsp)
     ret
 end
-phsp_iterator(path) = phsp_iterator(IAEAPath(path))
+iaea_iterator(path) = iaea_iterator(IAEAPath(path))
 
-function phsp_iterator(path::IAEAPath)
+function iaea_iterator(path::IAEAPath)
     @argcheck ispath(path.header)
     @argcheck ispath(path.phsp)
     h = load(path.header, RecordContents)

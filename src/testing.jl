@@ -4,14 +4,14 @@ export arbitrary
 
 function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
     typ = rand([instances(ParticleType)...])
-    E = 100*rand(Float32)
-    weight = rand(Float32)
+    E = 100*rand()
+    weight = rand()
     x = randn(Float32)
     y = randn(Float32)
     z = randn(Float32)
-    u = randn(Float32)
-    v = randn(Float32)
-    w = randn(Float32)
+    u = randn(Float64)
+    v = randn(Float64)
+    w = randn(Float64)
     scale = 1/sqrt(u^2 + v^2 + w^2)
     u *= scale
     v *= scale

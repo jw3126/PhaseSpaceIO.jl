@@ -19,7 +19,7 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
         true, (), (13,))
     
     path = assetpath("some_file.IAEAphsp")
-    ps = phsp_iterator(collect, path)
+    ps = iaea_iterator(collect, path)
     @test length(ps) == 1
     @test first(ps) == p_ref
     
@@ -34,7 +34,7 @@ end
 
 @testset "test PhaseSpaceIterator" begin
     path = assetpath("some_file.IAEAphsp")
-    phsp = phsp_iterator(path)
+    phsp = iaea_iterator(path)
     @test length(phsp) == 1
     @test eltype(phsp) === Particle{0,1}
     @test collect(phsp) == collect(phsp)
@@ -74,8 +74,8 @@ function test_header_contents(path)
     end
 end
 
-@testset "test phsp_iterator phsp_writer" begin
-    for _ in 1:5
+@testset "test iaea_iterator iaea_writer" begin
+    for _ in 1:100
         f = rand(1:3)
         i = rand(1:3)
         n = rand(1:1000)
@@ -84,7 +84,7 @@ end
         dir = tempname()
         mkpath(dir)
         path = IAEAPath(joinpath(dir, "hello"))
-        phsp_writer(path,r) do w
+        iaea_writer(path,r) do w
             for p in ps
                 write(w, p)
             end
@@ -93,8 +93,8 @@ end
         @test ispath(path.phsp)
         test_header_contents(path.header)
 
-        ps_reload = phsp_iterator(collect, path)
-        @test all(ps .≈ ps_reload)
+        ps_reload = iaea_iterator(collect, path)
+        @test all(ps_reload .≈ ps)
         rm(path)
 
         @test !ispath(path.header)

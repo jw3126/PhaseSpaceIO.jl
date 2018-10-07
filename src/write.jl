@@ -177,13 +177,13 @@ function print_record_contents(io::IO, r::RecordContents)
     println(io)
 end
 
-function phsp_writer(path::IAEAPath, r::RecordContents)
+function iaea_writer(path::IAEAPath, r::RecordContents)
     io_header = open(path.header, "w") 
     io_phsp   = open(path.phsp  , "w")
     ga = GeneratedAttributes()
     writer = PhaseSpaceWriter(r, ga, io_header, io_phsp)
 end
-phsp_writer(path) = phsp_writer(IAEAPath(path))
+iaea_writer(path) = iaea_writer(IAEAPath(path))
 
 function Base.close(w::PhaseSpaceWriter)
     print_header(w.io_header, w)
@@ -191,8 +191,8 @@ function Base.close(w::PhaseSpaceWriter)
     close(w.io_phsp)
 end
 
-function phsp_writer(f, path, r::RecordContents)
-    w = phsp_writer(IAEAPath(path), r)
+function iaea_writer(f, path, r::RecordContents)
+    w = iaea_writer(IAEAPath(path), r)
     ret = f(w)
     close(w)
     ret

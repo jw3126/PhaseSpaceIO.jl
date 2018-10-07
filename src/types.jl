@@ -55,7 +55,9 @@ function Particle(typ, E, weight,
                      extra_floats, extra_ints)
 end
 
-function Particle(;typ,E,weight=1,x,y,z,u,v,w,new_history=true,
+function Particle(;typ,E,weight=1,x,y,z,
+                  u,v,w,
+                  new_history=true,
                   extra_floats=(),extra_ints=())
     Particle(typ, E, weight,
                      x,y,z, u,v,w,
