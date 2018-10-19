@@ -52,4 +52,13 @@ end
     @test h.weights == [2 2 0; 1 0 0]
 end
 
+@testset "download" begin
+    key = "VarianClinaciX_6MV_05x05"
+    path = iaea_download(key)
+    path2 = iaea_download(key)
+    @test path2 == path
+    ps = iaea_iterator(collect, path)
+    @test length(ps) == 432410
+end
+
 end

@@ -1,0 +1,50 @@
+{
+    "VarianClinaciX_6MV_2x2": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_2x2.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_2x2.IAEAheader"
+    },
+    "VarianClinaciX_6MV_20x20_aboveMLC_w2": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_20x20_aboveMLC_w2.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_20x20_aboveMLC_w2.IAEAheader"
+    },
+    "VarianClinaciX_6MV_10x10_w2": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_10x10_w2.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_10x10_w2.IAEAheader"
+    },
+    "VarianClinaciX_6MV_20x20_w3": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_20x20_w3.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_20x20_w3.IAEAheader"
+    },
+    "VarianClinaciX_6MV_20x20_w1": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_20x20_w1.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_20x20_w1.IAEAheader"
+    },
+    "VarianClinaciX_6MV_4x4": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_4x4.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_4x4.IAEAheader"
+    },
+    "VarianClinaciX_6MV_10x10_w3": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_10x10_w3.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_10x10_w3.IAEAheader"
+    },
+    "VarianClinaciX_6MV_10x10_w1": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_10x10_w1.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_10x10_w1.IAEAheader"
+    },
+    "VarianClinaciX_6MV_20x20_aboveMLC_w1": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_20x20_aboveMLC_w1.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_20x20_aboveMLC_w1.IAEAheader"
+    },
+    "VarianClinaciX_6MV_1x1": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_1x1.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_1x1.IAEAheader"
+    },
+    "VarianClinaciX_6MV_05x05": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_05x05.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_05x05.IAEAheader"
+    },
+    "VarianClinaciX_6MV_20x20_w2": {
+        "phsp": "https://www-nds.iaea.org/phsp/photon/Varian_Clinac_iX_6MV/VarianClinaciX_6MV_20x20_w2.IAEAphsp",
+        "header": "https://www-nds.iaea.org/phsp/photon1/VarianClinaciX_6MV_20x20_w2.IAEAheader"
+    }
+}
