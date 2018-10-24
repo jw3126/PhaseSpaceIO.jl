@@ -12,5 +12,6 @@ include("experimental.jl")
 include("getters.jl")
 include("testing.jl")
 include("deprecate.jl")
+include("download.jl")
 
 end
