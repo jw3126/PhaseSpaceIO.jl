@@ -1,6 +1,7 @@
 module Testing
 using PhaseSpaceIO: Particle, ParticleType,
-EGSHeader, EGSParticle
+EGSHeader, EGSParticle, latchpattern, photon, electron, positron,
+particle_type_from_latch
 export arbitrary
 
 function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
@@ -30,13 +31,13 @@ function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
                     extra_ints)
 end
 
-function arbitrary(H::Type{EGSHeader{MODE}}; 
+function arbitrary(H::Type{EGSHeader{P}}; 
     particlecount = Int32(rand(1:typemax(Int32))),
     photoncount = Int32(rand(1:particlecount)),
     max_E_kin = Float32(25*rand()),
     min_E_kin_electrons= Float32(rand()),
     originalcount = Float32(10^(10*rand()))
-    ) where {MODE}
+    ) where {P}
     H(particlecount,
     photoncount,
     max_E_kin,
@@ -46,7 +47,11 @@ end
 
 function arbitrary(P::Type{EGSParticle{ZLAST}}) where {ZLAST}
     E = rand(Float32)
-    latch = rand(UInt32)
+    typ = rand([electron, positron, photon])
+    latch = latchpattern(typ)
+    if Bool(30 >> latch & UInt32(1 << 30))
+        latch |= UInt32(1 << 29)
+    end
     x = randn(Float32)
     y = randn(Float32)
     u = randn()
@@ -58,7 +63,7 @@ function arbitrary(P::Type{EGSParticle{ZLAST}}) where {ZLAST}
     w = Float32(scale * w)
     new_history = rand(Bool)
     weight = 10*rand(Float32)
-    charge = 999
+    typ = particle_type_from_latch(latch)
     if ZLAST == Nothing
         zlast = nothing
     else
@@ -66,18 +71,18 @@ function arbitrary(P::Type{EGSParticle{ZLAST}}) where {ZLAST}
     end
     
     EGSParticle(
-        latch::UInt32,
+        typ::ParticleType,
         E::Float32,
+        weight::Float32,
         x::Float32,
         y::Float32,
         u::Float32,
         v::Float32,
         w::Float32,
         new_history::Bool,
-        weight::Float32,
-        charge::Int,
         zlast::ZLAST,
-    )
+        latch::UInt32,
+   )
 end
 
 end

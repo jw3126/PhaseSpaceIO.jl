@@ -1,3 +1,5 @@
+export EGSParticle
+
 function read_ZLAST(io::IO)
     mode = prod([read(io, Char) for _ in 1:5])
     if mode == "MODE0"
@@ -10,17 +12,34 @@ function read_ZLAST(io::IO)
 end
 
 struct EGSParticle{ZLAST <: Union{Nothing, Float32}}
-    latch::UInt32
+    typ::ParticleType
     E::Float32
+    weight::Float32
     x::Float32
     y::Float32
     u::Float32
     v::Float32
     w::Float32
     new_history::Bool
-    weight::Float32
-    charge::Int
     zlast::ZLAST
+    latch::UInt32
+end
+
+function EGSParticle(;typ,E,weight=1,x,y,
+                  u,v,w,
+                  new_history=true,
+                  zlast=nothing,
+                  latch = latchpattern(typ))
+    ZLAST = typeof(zlast)
+    EGSParticle{ZLAST}(typ, E, weight,
+                     x,y, u,v,w,
+                     new_history,
+                     zlast, latch)
+end
+
+function Base.show(io::IO, p::EGSParticle)
+    zlast = sprint(show, p.zlast)
+    print(io, "EGSParticle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), zlast=$(zlast), latch=$(p.latch))")
 end
 
 struct EGSHeader{P <: EGSParticle}
@@ -53,7 +72,7 @@ function Base.isapprox(p1::EGSParticle,
     else
         isapprox(p1.zlast, p2.zlast; kw...) || return false
     end
-    # p1.typ == p2.typ  &&
+    p1.typ == p2.typ  &&
     p1.latch == p2.latch &&
     p1.new_history   == p2.new_history    &&
     isapprox(p1.E,      p2.E;      kw...) &&
@@ -75,7 +94,7 @@ function ptype(::Type{EGSHeader{P}}) where {P}
     P
 end
 
-function compressed_particle_sizeof(h::EGSHeader)
+function ptype_disksize(h::EGSHeader)
     ZLAST = zlast_type(h)
     sizeof(ZLAST) + 7 * 4
 end
@@ -95,12 +114,45 @@ function egs_iterator(io::IO)
     h = consume_egs_header(io)
     buf = Vector{UInt8}()
     total_size  = bytelength(io)
-    particle_size = compressed_particle_sizeof(h)
+    particle_size = ptype_disksize(h)
     header_size = particle_size
     body_size = total_size - header_size
     len = Int64(body_size / particle_size)
     @assert len == h.particlecount
     EGSPhspIterator(io, h, buf, len)
+end
+
+function getbit(bits::UInt32, i)
+    mask = UInt32(1 << i)
+    Bool(mask & bits)
+end
+
+function particle_type_from_latch(latch)::ParticleType
+    latchmask = (1<<30) | (1<<29)
+    latch &= latchmask
+    if latch == latchpattern(photon)
+        photon
+    elseif latch == latchpattern(electron)
+        electron
+    elseif latch == latchpattern(positron)
+        positron
+    else
+        msg = "Unsupported latch pattern $latch"
+        throw(ArgumentError(msg))
+    end
+end
+
+function latchpattern(p::ParticleType)::UInt32
+    if p == photon
+        UInt32(0)
+    elseif p == electron
+        UInt32(1 << 30)
+    elseif p == positron
+        UInt32( (1<<30) | (1<<29))
+    else
+        msg = "Unsupported particle type $p"
+        throw(ArgumentError(msg))
+    end
 end
 
 function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
@@ -124,13 +176,25 @@ function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
 
     ZLAST = zlast_type(h)
     zlast = readbuf!(ZLAST, buf)
-    charge = 999
-    EGSParticle(latch, E, x,y, u,v,w, new_history, weight, charge, zlast)
+    typ = particle_type_from_latch(latch)
+    EGSParticle(
+        typ::ParticleType,
+        E::Float32,
+        weight::Float32,
+        x::Float32,
+        y::Float32,
+        u::Float32,
+        v::Float32,
+        w::Float32,
+        new_history::Bool,
+        zlast::ZLAST,
+        latch::UInt32,
+   )
 end
 
 function Base.iterate(iter::EGSPhspIterator)
     # skip header
-    pos = compressed_particle_sizeof(iter.header)
+    pos = ptype_disksize(iter.header)
     seek(iter.io, pos)
     _iterate(iter)
 end
@@ -180,15 +244,15 @@ function write_header(io::IO, h::EGSHeader)
     ret += write(io, h.max_E_kin)
     ret += write(io, h.min_E_kin_electrons)
     ret += write(io, h.originalcount)
-    while (ret < compressed_particle_sizeof(h))
+    while (ret < ptype_disksize(h))
         ret += write(io, '\0')
     end
-    @assert ret == compressed_particle_sizeof(h)
+    @assert ret == ptype_disksize(h)
     ret
 end
 function write_particle(io::IO, p::EGSParticle, h::EGSHeader)
     ret = write_particle(io,p)
-    @assert ret == compressed_particle_sizeof(h)
+    @assert ret == ptype_disksize(h)
     ret
 end
 function write_particle(io::IO, p::EGSParticle)

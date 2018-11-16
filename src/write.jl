@@ -85,7 +85,7 @@ function print_header(io::IO, w::PhaseSpaceWriter)
     println_kv(io, :FILE_TYPE, 0)
     r = w.record_contents
     ga = w.generated_attributes
-    record_length = compressed_particle_sizeof(r)
+    record_length = ptype_disksize(r)
     checksum = ga.length * record_length
     println_kv(io, :CHECKSUM, checksum)
     print_record_contents(io, r)

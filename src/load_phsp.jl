@@ -1,4 +1,4 @@
-function comporessed_particle_no_defaults_sizeof(h::RecordContents{Nf, Ni}) where {Nf, Ni}
+function ptype_disksize_nodefaults(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     1 + # typ
     4 + # energy
     12 + # x,y,z
@@ -8,9 +8,9 @@ function comporessed_particle_no_defaults_sizeof(h::RecordContents{Nf, Ni}) wher
     4 * Ni
 end
 
-function compressed_particle_sizeof(h::RecordContents{Nf, Ni}) where {Nf, Ni}
+function ptype_disksize(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     size_reduction_due_to_defaults = sizeof(h.data)
-    comporessed_particle_no_defaults_sizeof(h) - size_reduction_due_to_defaults
+    ptype_disksize_nodefaults(h) - size_reduction_due_to_defaults
 end
 
 @generated function readbuf_default!(buf::ByteBuffer,
@@ -38,13 +38,13 @@ end
 end
 
 function read_particle(io::IO, h)
-    bufsize = compressed_particle_sizeof(h)
+    bufsize = ptype_disksize(h)
     buf = Vector{UInt8}(undef,bufsize)
     read_particle_explicit_buf(io, h, buf)
 end
 
 function read_particle_explicit_buf(io::IO, h, buf::ByteBuffer)
-    bufsize = compressed_particle_sizeof(h)
+    bufsize = ptype_disksize(h)
     readbytes!(io, buf, bufsize)
     @assert length(buf) == bufsize
     p = readbuf_particle!(buf, h)

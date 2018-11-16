@@ -122,7 +122,7 @@ function PhaseSpaceIterator(io::IO,h::RecordContents)
     I = typeof(io)
     buf = Vector{UInt8}()
     bl = bytelength(io)
-    length = Int64(bl / compressed_particle_sizeof(h))
+    length = Int64(bl / ptype_disksize(h))
     PhaseSpaceIterator{H,P,I}(io, h,buf, length)
 end
 
