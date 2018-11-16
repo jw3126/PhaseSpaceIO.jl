@@ -30,6 +30,10 @@ function readbuf!(::Type{T}, buf::ByteBuffer) where {T}
     reinterpret(T, readbuf!(UInt32, buf))
 end
 
+function readbuf!(::Type{Nothing}, buf::ByteBuffer)
+    nothing
+end
+
 function readbuf!(::Type{UInt8}, buf::ByteBuffer)
     popfirst!(buf)
 end
@@ -69,13 +73,13 @@ end
     end
 end
 
-function read_particle(io::IO, h::RecordContents)
+function read_particle(io::IO, h)
     bufsize = compressed_particle_sizeof(h)
     buf = Vector{UInt8}(undef,bufsize)
     read_particle_explicit_buf(io, h, buf)
 end
 
-function read_particle_explicit_buf(io::IO, h::RecordContents, buf::ByteBuffer)
+function read_particle_explicit_buf(io::IO, h, buf::ByteBuffer)
     bufsize = compressed_particle_sizeof(h)
     readbytes!(io, buf, bufsize)
     @assert length(buf) == bufsize
