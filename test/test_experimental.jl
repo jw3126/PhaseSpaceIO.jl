@@ -13,7 +13,7 @@ using PhaseSpaceIO.Testing
 end
 
 @testset "Setfield" begin
-    p = IAEAParticle(1,2,3,4,5,6,0,0,1,true,(),())
+    p = IAEAParticle(photon,2,3,4,5,6,0,0,1,true,(),())
     q = @set p.x = 10
     @test q.x == 10
     @test p.x == 4

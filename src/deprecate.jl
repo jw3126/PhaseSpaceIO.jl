@@ -3,3 +3,4 @@
 @deprecate Particle IAEAParticle
 @deprecate PhaseSpaceIterator IAEAPhspIterator
 @deprecate PhaseSpaceWriter IAEAPhspWriter
+@deprecate convert(::Type{ParticleType}, i::Integer) ParticleType(i)

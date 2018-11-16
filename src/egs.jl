@@ -50,7 +50,7 @@ struct EGSHeader{P <: EGSParticle}
     originalcount::Float32
 end
 
-struct EGSPhspIterator{H <: EGSHeader, I <:IO}
+struct EGSPhspIterator{H <: EGSHeader, I <:IO} <: AbstractPhspIterator
     io::I
     header::H
     # currently read(io, Float32) allocates,
@@ -62,7 +62,6 @@ end
 function Base.eltype(::Type{EGSPhspIterator{H}}) where {H}
     ptype(H)
 end
-
 
 function Base.isapprox(p1::EGSParticle,
                        p2::EGSParticle;kw...)
