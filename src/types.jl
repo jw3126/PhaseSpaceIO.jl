@@ -101,11 +101,7 @@ function RecordContents{Nf, Ni}(;
     RecordContents{Nf, Ni,NT}(data)
 end
 
-abstract type AbstractPhaseSpace{H <: RecordContents, P} end
-
-Base.eltype(::Type{<:AbstractPhaseSpace{H,P}}) where {H,P} = P
-
-struct IAEAPhspIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
+struct IAEAPhspIterator{H,I<:IO}
     io::I
     header::H
     # currently read(io, Float32) allocates,
@@ -114,45 +110,15 @@ struct IAEAPhspIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
     length::Int64
 end
 
-Base.length(p::IAEAPhspIterator) = p.length
-
 function IAEAPhspIterator(io::IO,h::RecordContents)
     H = typeof(h)
-    P = ptype(h)
     I = typeof(io)
     buf = Vector{UInt8}()
     bl = bytelength(io)
     length = Int64(bl / ptype_disksize(h))
-    IAEAPhspIterator{H,P,I}(io, h,buf, length)
+    IAEAPhspIterator{H,I}(io, h,buf, length)
 end
 
-function Base.iterate(iter::IAEAPhspIterator)
-    seekstart(iter.io)
-    _iterate(iter)
-end
-function Base.iterate(iter::IAEAPhspIterator, state)
-    _iterate(iter)
-end
-
-@inline function _iterate(iter::IAEAPhspIterator)
-    io = iter.io
-    h = iter.header
-    P = ptype(h)
-    if eof(iter.io)
-        nothing
-    else
-        p = read_particle_explicit_buf(io, h, iter.buf)
-        dummy_state = nothing
-        p, dummy_state
-    end
-end
-
-function Base.IteratorSize(iter::AbstractPhaseSpace)
-    Base.HasLength()
-end
-function Base.IteratorSize(iter::Base.Iterators.Take{<:AbstractPhaseSpace}) 
-    Base.IteratorSize(iter.xs)
-end
-function Base.close(iter::IAEAPhspIterator)
-    close(iter.io)
+function Base.eltype(::Type{<:IAEAPhspIterator{H}}) where {H}
+    ptype(H)
 end

@@ -122,11 +122,6 @@ function egs_iterator(io::IO)
     EGSPhspIterator(io, h, buf, len)
 end
 
-function getbit(bits::UInt32, i)
-    mask = UInt32(1 << i)
-    Bool(mask & bits)
-end
-
 function particle_type_from_latch(latch)::ParticleType
     latchmask = (1<<30) | (1<<29)
     latch &= latchmask
@@ -197,35 +192,6 @@ function Base.iterate(iter::EGSPhspIterator)
     pos = ptype_disksize(iter.header)
     seek(iter.io, pos)
     _iterate(iter)
-end
-function Base.iterate(iter::EGSPhspIterator, state)
-    _iterate(iter)
-end
-
-@inline function _iterate(iter::EGSPhspIterator)
-    io = iter.io
-    h = iter.header
-    P = ptype(h)
-    if eof(iter.io)
-        nothing
-    else
-        p = read_particle_explicit_buf(io, h, iter.buf)
-        dummy_state = nothing
-        p, dummy_state
-    end
-end
-
-function Base.IteratorSize(iter::EGSPhspIterator)
-    Base.HasLength()
-end
-function Base.IteratorSize(iter::Base.Iterators.Take{<:EGSPhspIterator}) 
-    Base.IteratorSize(iter.xs)
-end
-function Base.close(iter::EGSPhspIterator)
-    close(iter.io)
-end
-function Base.length(iter::EGSPhspIterator)
-    iter.length
 end
 
 function write_header(io::IO, h::EGSHeader)
