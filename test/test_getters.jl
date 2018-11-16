@@ -14,6 +14,14 @@ using Setfield
     @test energy(p) == 10
     p = @set p.weight = 0.1
     @test energy(p) ≈ 1
+
+    p = arbitrary(EGSParticle{Float32})
+    p = @set p.x = 1000f0
+    @test x(p) ≈ 1000
+    p = @set p.zlast = nothing
+    @test zlast(p) == nothing
+    p = @set p.zlast = 1f0
+    @test zlast(p) == 1f0
 end
 
 end
