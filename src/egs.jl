@@ -1,18 +1,29 @@
-const MODE0 = :MODE0
-const MODE2 = :MODE2
-
-function read_mode(io::IO)
+function read_ZLAST(io::IO)
     mode = prod([read(io, Char) for _ in 1:5])
     if mode == "MODE0"
-        MODE0
+        Nothing
     elseif mode == "MODE2"
-        MODE2
+        Float32
     else
         error("Unknown mode $mode")
     end
 end
 
-struct EGSHeader{mode}
+struct EGSParticle{ZLAST <: Union{Nothing, Float32}}
+    latch::UInt32
+    E::Float32
+    x::Float32
+    y::Float32
+    u::Float32
+    v::Float32
+    w::Float32
+    new_history::Bool
+    weight::Float32
+    charge::Int
+    zlast::ZLAST
+end
+
+struct EGSHeader{P <: EGSParticle}
     particlecount::Int32
     photoncount::Int32
     max_E_kin::Float32
@@ -29,19 +40,10 @@ struct EGSPhspIterator{H <: EGSHeader, I <:IO}
     length::Int64
 end
 
-struct EGSParticle{ZLAST <: Union{Nothing, Float32}}
-    latch::UInt32
-    E::Float32
-    x::Float32
-    y::Float32
-    u::Float32
-    v::Float32
-    w::Float32
-    new_history::Bool
-    weight::Float32
-    charge::Int
-    zlast::ZLAST
+function Base.eltype(::Type{EGSPhspIterator{H}}) where {H}
+    ptype(H)
 end
+
 
 function Base.isapprox(p1::EGSParticle,
                        p2::EGSParticle;kw...)
@@ -60,23 +62,33 @@ function Base.isapprox(p1::EGSParticle,
     isapprox([p1.u, p1.v, p1.w], [p2.u, p2.v, p2.w]; kw...)
 end
 
-zlast_type(::Type{EGSHeader{MODE0}}) = Nothing
-zlast_type(::Type{EGSHeader{MODE2}}) = Float32
-ptype(::Type{H}) where {H <: EGSHeader} = EGSParticle{zlast_type(H)}
-zlast_type(::Type{EGSParticle{ZLAST}}) where {ZLAST} = ZLAST
+function zlast_type(::Type{EGSParticle{ZLAST}}) where {ZLAST}   
+    ZLAST
+end
+function zlast_type(::Type{EGSHeader{P}}) where {P}
+    zlast_type(P)
+end
+function zlast_type(o)
+    zlast_type(typeof(o))
+end
+function ptype(::Type{EGSHeader{P}}) where {P}
+    P
+end
 
-function compressed_particle_sizeof(h::H) where {H <: EGSHeader}
-    sizeof(zlast_type(H)) + 7 * 4
+function compressed_particle_sizeof(h::EGSHeader)
+    ZLAST = zlast_type(h)
+    sizeof(ZLAST) + 7 * 4
 end
 
 function consume_egs_header(io::IO)
-    MODE = read_mode(io)
+    ZLAST = read_ZLAST(io)
+    P = EGSParticle{ZLAST}
     nphsp = read(io, Int32)
     nphotphsp = read(io, Int32)
     ekmaxphsp = read(io, Float32)
     ekminphspe = read(io, Float32)
     nincphsp = read(io, Float32)
-    EGSHeader{MODE}(nphsp, nphotphsp, ekmaxphsp, ekminphspe, nincphsp)
+    EGSHeader{P}(nphsp, nphotphsp, ekmaxphsp, ekminphspe, nincphsp)
 end
 
 function egs_iterator(io::IO)
@@ -110,7 +122,7 @@ function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
     weight = abs(weight)
     u,v,w = compute_u_v_w(u,v,sign_w)
 
-    ZLAST = zlast_type(typeof(h))
+    ZLAST = zlast_type(h)
     zlast = readbuf!(ZLAST, buf)
     charge = 999
     EGSParticle(latch, E, x,y, u,v,w, new_history, weight, charge, zlast)
@@ -152,9 +164,17 @@ function Base.length(iter::EGSPhspIterator)
     iter.length
 end
 
-function write_header(io::IO, h::EGSHeader{MODE}) where {MODE}
+function write_header(io::IO, h::EGSHeader)
+    ZLAST = zlast_type(h)
+    mode = if ZLAST == Nothing
+        "MODE0"
+    else
+        @assert ZLAST == Float32
+        "MODE2"
+    end
+
     ret = 0
-    ret += write(io, MODE)
+    ret += write(io, mode)
     ret += write(io, h.particlecount)
     ret += write(io, h.photoncount)
     ret += write(io, h.max_E_kin)

@@ -3,6 +3,7 @@ module PhaseSpaceIO
 using ArgCheck
 using DataStructures
 
+include("iohelpers.jl")
 include("types.jl")
 include("load_header.jl")
 include("load_phsp.jl")

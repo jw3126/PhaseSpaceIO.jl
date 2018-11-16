@@ -114,16 +114,6 @@ struct PhaseSpaceIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
     length::Int64
 end
 
-function bytelength(io::IO)
-    init_pos = position(io)
-    seekstart(io)
-    start_pos = position(io)
-    seekend(io)
-    end_pos = position(io)
-    seek(io, init_pos)
-    end_pos - start_pos
-end
-
 Base.length(p::PhaseSpaceIterator) = p.length
 
 function PhaseSpaceIterator(io::IO,h::RecordContents)

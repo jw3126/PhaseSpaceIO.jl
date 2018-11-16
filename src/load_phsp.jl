@@ -1,8 +1,3 @@
-@generated function readtuple(io::IO, ::Type{T}) where {T <: Tuple}
-    args = [:(read(io, $Ti)) for Ti ∈ T.parameters]
-    Expr(:call, :tuple, args...)
-end
-
 function comporessed_particle_no_defaults_sizeof(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     1 + # typ
     4 + # energy
@@ -16,37 +11,6 @@ end
 function compressed_particle_sizeof(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     size_reduction_due_to_defaults = sizeof(h.data)
     comporessed_particle_no_defaults_sizeof(h) - size_reduction_due_to_defaults
-end
-
-const ByteBuffer = AbstractVector{UInt8}
-
-@generated function readbuf!( ::Type{T}, buf::ByteBuffer) where {T <: Tuple}
-    args = [:(readbuf!($Ti, buf)) for Ti ∈ T.parameters]
-    Expr(:call, :tuple, args...)
-end
-
-function readbuf!(::Type{T}, buf::ByteBuffer) where {T}
-    @argcheck sizeof(T) == sizeof(UInt32)
-    reinterpret(T, readbuf!(UInt32, buf))
-end
-
-function readbuf!(::Type{Nothing}, buf::ByteBuffer)
-    nothing
-end
-
-function readbuf!(::Type{UInt8}, buf::ByteBuffer)
-    popfirst!(buf)
-end
-function readbuf!(T::Type{Int8}, buf::ByteBuffer)
-    reinterpret(T, readbuf!(UInt8, buf))
-end
-
-function readbuf!(::Type{UInt32}, buf::ByteBuffer)
-    b4 = UInt32(popfirst!(buf)) << 0
-    b3 = UInt32(popfirst!(buf)) << 8
-    b2 = UInt32(popfirst!(buf)) << 16
-    b1 = UInt32(popfirst!(buf)) << 24
-    b1 + b2 + b3 + b4
 end
 
 @generated function readbuf_default!(buf::ByteBuffer,

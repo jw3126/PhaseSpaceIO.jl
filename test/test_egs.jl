@@ -2,14 +2,15 @@ module TestEGS
 using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
-using PhaseSpaceIO: ptype, MODE0, MODE2, EGSHeader, write_header, write_particle
+using PhaseSpaceIO: ptype, EGSHeader, write_header, write_particle, EGSParticle
 
 @testset "read write inverse" begin
     for _ in 1:100
-        MODE = rand(Bool) ? MODE0 : MODE2
+        ZLAST = rand(Bool) ? Nothing : Float32
+        P = EGSParticle{ZLAST}
         nparticles = rand(1:100)
-        h = arbitrary(EGSHeader{MODE}, particlecount=nparticles)
-        ps = [arbitrary(ptype(h)) for _ in 1:nparticles]
+        h = arbitrary(EGSHeader{P}, particlecount=nparticles)
+        ps = [arbitrary(P) for _ in 1:nparticles]
         io = IOBuffer()
         write_header(io, h)
         for p in ps
