@@ -43,6 +43,23 @@ struct EGSParticle{ZLAST <: Union{Nothing, Float32}}
     zlast::ZLAST
 end
 
+function Base.isapprox(p1::EGSParticle,
+                       p2::EGSParticle;kw...)
+    true
+    if p1.zlast == nothing
+        p2.zlast == nothing || return false
+    else
+        isapprox(p1.zlast, p2.zlast; kw...) || return false
+    end
+    # p1.typ == p2.typ  &&
+    p1.latch == p2.latch &&
+    p1.new_history   == p2.new_history    &&
+    isapprox(p1.E,      p2.E;      kw...) &&
+    isapprox(p1.weight, p2.weight; kw...) &&
+    isapprox([p1.x, p1.y], [p2.x, p2.y]; kw...) &&
+    isapprox([p1.u, p1.v, p1.w], [p2.u, p2.v, p2.w]; kw...)
+end
+
 zlast_type(::Type{EGSHeader{MODE0}}) = Nothing
 zlast_type(::Type{EGSHeader{MODE2}}) = Float32
 ptype(::Type{H}) where {H <: EGSHeader} = EGSParticle{zlast_type(H)}
@@ -58,7 +75,7 @@ function consume_egs_header(io::IO)
     nphotphsp = read(io, Int32)
     ekmaxphsp = read(io, Float32)
     ekminphspe = read(io, Float32)
-    nincphsp = read(io, Int32)
+    nincphsp = read(io, Float32)
     EGSHeader{MODE}(nphsp, nphotphsp, ekmaxphsp, ekminphspe, nincphsp)
 end
 
@@ -89,11 +106,10 @@ function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
     
     weight = readbuf!(Float32, buf)
     
-    signw = sign(weight)
+    sign_w = sign(weight)
     weight = abs(weight)
-    w64 = signw * sqrt(1 - Float64(u)^2 - Float64(v^2))
-    w = Float32(w64)
-    
+    u,v,w = compute_u_v_w(u,v,sign_w)
+
     ZLAST = zlast_type(typeof(h))
     zlast = readbuf!(ZLAST, buf)
     charge = 999
@@ -137,7 +153,8 @@ function Base.length(iter::EGSPhspIterator)
 end
 
 function write_header(io::IO, h::EGSHeader{MODE}) where {MODE}
-    ret = write(io, MODE)
+    ret = 0
+    ret += write(io, MODE)
     ret += write(io, h.particlecount)
     ret += write(io, h.photoncount)
     ret += write(io, h.max_E_kin)

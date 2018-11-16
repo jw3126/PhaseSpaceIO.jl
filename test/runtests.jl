@@ -1,3 +1,4 @@
+include("test_egs.jl")
 include("test_core.jl")
 include("test_getters.jl")
 include("test_read_write.jl")

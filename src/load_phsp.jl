@@ -88,6 +88,19 @@ function read_particle_explicit_buf(io::IO, h, buf::ByteBuffer)
     p
 end
 
+function compute_u_v_w(u, v, sign_w)
+    tmp = Float64(u)^2 + Float64(v)^2
+    if tmp <= 1
+        w = sign_w * Float32(√(1 - tmp))
+    else
+        w = Float32(0)
+        tmp = √(tmp)
+        u = Float32(u/tmp)
+        v = Float32(v/tmp)
+    end
+    u,v,w
+end
+
 @noinline function readbuf_particle!(buf::ByteBuffer, h::RecordContents{Nf, Ni}) where {Nf, Ni}
 
     P = ptype(h)
@@ -104,15 +117,7 @@ end
     weight = readbuf_default!(buf, Val(:weight), h)
     
     sign_w = Float32(-1)^(typ8 < 0)
-    tmp = Float64(u)^2 + Float64(v)^2
-    if tmp <= 1
-        w = sign_w * Float32(√(1 - tmp))
-    else
-        w = Float32(0)
-        tmp = √(tmp)
-        u = Float32(u/tmp)
-        v = Float32(v/tmp)
-    end
+    u,v,w = compute_u_v_w(u,v,sign_w)
     
     extra_floats = readbuf!(NTuple{Nf, Float32}, buf)
     extra_ints = readbuf!(NTuple{Ni, Int32}, buf)
