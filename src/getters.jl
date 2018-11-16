@@ -1,7 +1,7 @@
 module Getters
-using PhaseSpaceIO: Particle
+using PhaseSpaceIO: IAEAParticle
 
-for field in fieldnames(Particle{0,0})
+for field in fieldnames(IAEAParticle{0,0})
     @eval ($field)(p) = p.$field
     @eval export $field
 end

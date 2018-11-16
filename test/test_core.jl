@@ -4,7 +4,7 @@ using PhaseSpaceIO.Testing: arbitrary
 using Test
 using Base.Meta
 @testset "show" begin
-    p_iaea = Particle(typ=photon,E=1.23,x=1,y=2,z=3,
+    p_iaea = IAEAParticle(typ=photon,E=1.23,x=1,y=2,z=3,
                  u=0,v=0,w=1)
     p_egs = EGSParticle(typ=electron, E=1.23, x=1, y=2,
                         u=0,v=0,w=1)

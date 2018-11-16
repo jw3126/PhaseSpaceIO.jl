@@ -25,7 +25,7 @@ end
 
 @generated function write_default(io::IO,
                              ::Val{field},
-                             p::Particle,
+                             p::IAEAParticle,
                              h::RecordContents{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
         quote
@@ -95,7 +95,7 @@ end
 end
 
 @noinline function write_particle(io::IO,
-                                  p::Particle{Nf, Ni},
+                                  p::IAEAParticle{Nf, Ni},
                                   h::RecordContents{Nf, Ni}) where {Nf, Ni}
     typ8 = Int8(p.typ)
     sign_typ8 = Int8(-1)^(p.w < 0)
@@ -119,6 +119,6 @@ end
     ret
 end
 
-ptype(h::Type{RecordContents{Nf, Ni, NT}}) where {Nf, Ni, NT} = Particle{Nf, Ni}
+ptype(h::Type{RecordContents{Nf, Ni, NT}}) where {Nf, Ni, NT} = IAEAParticle{Nf, Ni}
 ptype(T::Type) = error("$T has no ptype")
 ptype(h) = ptype(typeof(h))

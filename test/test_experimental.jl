@@ -13,14 +13,14 @@ using PhaseSpaceIO.Testing
 end
 
 @testset "Setfield" begin
-    p = Particle(1,2,3,4,5,6,0,0,1,true,(),())
+    p = IAEAParticle(1,2,3,4,5,6,0,0,1,true,(),())
     q = @set p.x = 10
     @test q.x == 10
     @test p.x == 4
 end
 
 @testset "histogram" begin
-    p = arbitrary(Particle{0,0})
+    p = arbitrary(IAEAParticle{0,0})
     p = @set p.E = 1
     p = @set p.x = 1
     p = @set p.weight = 1

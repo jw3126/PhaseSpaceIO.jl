@@ -14,7 +14,7 @@ function iaea_iterator(path::IAEAPath)
     @argcheck ispath(path.phsp)
     h = load(path.header, RecordContents)
     io = open(path.phsp)
-    PhaseSpaceIterator(io,h)
+    IAEAPhspIterator(io,h)
 end
 
 function egs_iterator(path::AbstractString)

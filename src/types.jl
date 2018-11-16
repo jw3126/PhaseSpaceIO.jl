@@ -1,4 +1,4 @@
-export Particle, ParticleType, RecordContents, PhaseSpace
+export IAEAParticle, ParticleType, RecordContents, PhaseSpace
 export photon, electron, positron, neutron, proton
 export IAEAPath
 
@@ -28,7 +28,7 @@ end
 @enum ParticleType photon=1 electron=2 positron=3 neutron=4 proton=5
 Base.convert(::Type{ParticleType}, i::Integer) = ParticleType(i)
 
-struct Particle{Nf, Ni}
+struct IAEAParticle{Nf, Ni}
     typ::ParticleType
     E::Float32
     weight::Float32
@@ -43,33 +43,33 @@ struct Particle{Nf, Ni}
     extra_ints::NTuple{Ni, Int32}
 end
 
-function Particle(typ, E, weight, 
+function IAEAParticle(typ, E, weight, 
                           x,y,z, 
                           u,v,w, 
                           new_history, 
                           extra_floats::NTuple{Nf,Float32}, extra_ints::NTuple{Ni,Int32}) where {Nf, Ni}
 
-    Particle{Nf, Ni}(typ, E, weight,
+    IAEAParticle{Nf, Ni}(typ, E, weight,
                      x,y,z, u,v,w,
                      new_history,
                      extra_floats, extra_ints)
 end
 
-function Particle(;typ,E,weight=1,x,y,z,
+function IAEAParticle(;typ,E,weight=1,x,y,z,
                   u,v,w,
                   new_history=true,
                   extra_floats=(),extra_ints=())
-    Particle(typ, E, weight,
+    IAEAParticle(typ, E, weight,
                      x,y,z, u,v,w,
                      new_history,
                      extra_floats, extra_ints)
 end
 
-function Base.show(io::IO, p::Particle)
-    print(io, "Particle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
+function Base.show(io::IO, p::IAEAParticle)
+    print(io, "IAEAParticle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
 end
 
-function Base.isapprox(p1::Particle, p2::Particle;kw...)
+function Base.isapprox(p1::IAEAParticle, p2::IAEAParticle;kw...)
     p1.typ == p2.typ  &&
     p1.new_history   == p2.new_history    &&
     p1.extra_floats  == p2.extra_floats   &&
@@ -82,7 +82,7 @@ end
 
 for pt in instances(ParticleType)
     fname = Symbol("is", pt)
-    @eval $fname(x::Particle) = x.typ == $pt
+    @eval $fname(x::IAEAParticle) = x.typ == $pt
     eval(Expr(:export, fname))
 end
 
@@ -105,7 +105,7 @@ abstract type AbstractPhaseSpace{H <: RecordContents, P} end
 
 Base.eltype(::Type{<:AbstractPhaseSpace{H,P}}) where {H,P} = P
 
-struct PhaseSpaceIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
+struct IAEAPhspIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
     io::I
     header::H
     # currently read(io, Float32) allocates,
@@ -114,27 +114,27 @@ struct PhaseSpaceIterator{H,P,I<:IO} <: AbstractPhaseSpace{H,P}
     length::Int64
 end
 
-Base.length(p::PhaseSpaceIterator) = p.length
+Base.length(p::IAEAPhspIterator) = p.length
 
-function PhaseSpaceIterator(io::IO,h::RecordContents)
+function IAEAPhspIterator(io::IO,h::RecordContents)
     H = typeof(h)
     P = ptype(h)
     I = typeof(io)
     buf = Vector{UInt8}()
     bl = bytelength(io)
     length = Int64(bl / ptype_disksize(h))
-    PhaseSpaceIterator{H,P,I}(io, h,buf, length)
+    IAEAPhspIterator{H,P,I}(io, h,buf, length)
 end
 
-function Base.iterate(iter::PhaseSpaceIterator)
+function Base.iterate(iter::IAEAPhspIterator)
     seekstart(iter.io)
     _iterate(iter)
 end
-function Base.iterate(iter::PhaseSpaceIterator, state)
+function Base.iterate(iter::IAEAPhspIterator, state)
     _iterate(iter)
 end
 
-@inline function _iterate(iter::PhaseSpaceIterator)
+@inline function _iterate(iter::IAEAPhspIterator)
     io = iter.io
     h = iter.header
     P = ptype(h)
@@ -153,6 +153,6 @@ end
 function Base.IteratorSize(iter::Base.Iterators.Take{<:AbstractPhaseSpace}) 
     Base.IteratorSize(iter.xs)
 end
-function Base.close(iter::PhaseSpaceIterator)
+function Base.close(iter::IAEAPhspIterator)
     close(iter.io)
 end

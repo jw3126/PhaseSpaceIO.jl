@@ -11,7 +11,7 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
 @testset "read write single particle" begin
     h = RecordContents{0,1}()
     P = ptype(h)
-    @test P == Particle{0,1}
+    @test P == IAEAParticle{0,1}
     p_ref = P(photon, 
         1.0f0, 2.0f0, 
         3.0f0, 4.0f0, 5.0f0, 
@@ -32,11 +32,11 @@ assetpath(args...) = joinpath(@__DIR__, "assets", args...)
 end
 
 
-@testset "test PhaseSpaceIterator" begin
+@testset "test IAEAPhspIterator" begin
     path = assetpath("some_file.IAEAphsp")
     phsp = iaea_iterator(path)
     @test length(phsp) == 1
-    @test eltype(phsp) === Particle{0,1}
+    @test eltype(phsp) === IAEAParticle{0,1}
     @test collect(phsp) == collect(phsp)
     @test length(collect(phsp)) == 1
     close(phsp)
@@ -79,7 +79,7 @@ end
         f = rand(1:3)
         i = rand(1:3)
         n = rand(1:1000)
-        ps = [arbitrary(Particle{f,i}) for _ in 1:n]
+        ps = [arbitrary(IAEAParticle{f,i}) for _ in 1:n]
         r = RecordContents{f,i}()
         dir = tempname()
         mkpath(dir)

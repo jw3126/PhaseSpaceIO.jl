@@ -1,10 +1,10 @@
 module Testing
-using PhaseSpaceIO: Particle, ParticleType,
+using PhaseSpaceIO: IAEAParticle, ParticleType,
 EGSHeader, EGSParticle, latchpattern, photon, electron, positron,
 particle_type_from_latch
 export arbitrary
 
-function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
+function arbitrary(::Type{IAEAParticle{Nf,Ni}}) where {Nf, Ni}
     typ = rand([instances(ParticleType)...])
     E = 100*rand()
     weight = rand()
@@ -21,7 +21,7 @@ function arbitrary(::Type{Particle{Nf,Ni}}) where {Nf, Ni}
     new_history  = rand(Bool)
     extra_floats = tuple(randn(Float32, Nf)...)
     extra_ints   = tuple(rand(Int32, Ni)...)
-    Particle{Nf,Ni}(typ,
+    IAEAParticle{Nf,Ni}(typ,
                     E,
                     weight,
                     x,y,z,

@@ -24,7 +24,7 @@ function GeneratedAttributes()
     )
 end
 
-struct PhaseSpaceWriter{R, I <: IO}
+struct IAEAPhspWriter{R, I <: IO}
     record_contents::R
     generated_attributes::GeneratedAttributes
     io_header::I
@@ -36,7 +36,7 @@ function increment(d, key, val=1)
     d[key] = get!(d,key,zero(T)) + val
 end
 
-function Base.write(io::PhaseSpaceWriter, p::Particle)
+function Base.write(io::IAEAPhspWriter, p::IAEAParticle)
     ret = write_particle(io.io_phsp, p, io.record_contents)
     
     ga = io.generated_attributes
@@ -57,7 +57,7 @@ function Base.write(io::PhaseSpaceWriter, p::Particle)
     ret
 end
 
-function Base.write(w::PhaseSpaceWriter, ps)
+function Base.write(w::IAEAPhspWriter, ps)
     ret = 0
     for p in ps
         ret += write(w,p)
@@ -79,7 +79,7 @@ function println_kv(io::IO, k, v)
     println(io)
 end
 
-function print_header(io::IO, w::PhaseSpaceWriter)
+function print_header(io::IO, w::IAEAPhspWriter)
     println_kv(io, :IAEA_INDEX, "0 // test header")
     println_kv(io, :TITLE, "")
     println_kv(io, :FILE_TYPE, 0)
@@ -181,11 +181,11 @@ function iaea_writer(path::IAEAPath, r::RecordContents)
     io_header = open(path.header, "w") 
     io_phsp   = open(path.phsp  , "w")
     ga = GeneratedAttributes()
-    writer = PhaseSpaceWriter(r, ga, io_header, io_phsp)
+    writer = IAEAPhspWriter(r, ga, io_header, io_phsp)
 end
 iaea_writer(path) = iaea_writer(IAEAPath(path))
 
-function Base.close(w::PhaseSpaceWriter)
+function Base.close(w::IAEAPhspWriter)
     print_header(w.io_header, w)
     close(w.io_header)
     close(w.io_phsp)

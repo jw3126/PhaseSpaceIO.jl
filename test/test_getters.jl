@@ -6,7 +6,7 @@ using PhaseSpaceIO.Getters
 using Setfield
 
 @testset "test getters" begin
-    p = arbitrary(Particle{0,1})
+    p = arbitrary(IAEAParticle{0,1})
     p = @set p.x = 100
     @test x(p) ≈ 100
     p = @set p.E = 10
