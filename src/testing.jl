@@ -49,7 +49,7 @@ function arbitrary(P::Type{EGSParticle{ZLAST}}) where {ZLAST}
     E = rand(Float32)
     typ = rand([electron, positron, photon])
     latch = latchpattern(typ)
-    if Bool(30 >> latch & UInt32(1 << 30))
+    if Bool((30 >> latch) & UInt32(1 << 30))
         latch |= UInt32(1 << 29)
     end
     x = randn(Float32)
