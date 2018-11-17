@@ -252,7 +252,7 @@ function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
         w.photoncount += 1
         E_kin = p.E
     else
-        E_kin = p.E - 0.512
+        E_kin = p.E - 0.511
     end
     w.max_E_kin = max(w.max_E_kin, E_kin)
     if p.typ == electron

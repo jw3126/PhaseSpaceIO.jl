@@ -7,6 +7,9 @@ export arbitrary
 function arbitrary(::Type{IAEAParticle{Nf,Ni}}) where {Nf, Ni}
     typ = rand([instances(ParticleType)...])
     E = 100*rand()
+    if typ != photon
+        E = min(E, 0.512)
+    end
     weight = rand()
     x = randn(Float32)
     y = randn(Float32)
