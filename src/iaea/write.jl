@@ -193,7 +193,7 @@ end
 
 function iaea_writer(f, path, r::RecordContents)
     w = iaea_writer(IAEAPath(path), r)
-    ret = f(w)
+    ret = call_fenced(f, w)
     close(w)
     ret
 end

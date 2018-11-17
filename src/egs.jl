@@ -236,3 +236,64 @@ function write_particle(io::IO, p::EGSParticle)
     end
     ret
 end
+
+mutable struct EGSWriter{P <: EGSParticle, I}
+    io::IO
+    particlecount::Int32
+    photoncount::Int32
+    max_E_kin::Float32
+    min_E_kin_electrons::Float32
+    originalcount::Float32
+end
+
+function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
+    w.particlecount += 1
+    if p.typ == photon
+        w.photoncount += 1
+        E_kin = p.E
+    else
+        E_kin = p.E - 0.512
+    end
+    w.max_E_kin = max(w.max_E_kin, E_kin)
+    if p.typ == electron
+        w.min_E_kin_electrons = min(w.min_E_kin_electrons, E_kin)
+    end
+    write_particle(w.io, p)
+end
+
+function create_header(w::EGSWriter{P}) where {P}
+    h = EGSHeader{P}(
+        w.particlecount::Int32,
+        w.photoncount::Int32,
+        w.max_E_kin::Float32,
+        w.min_E_kin_electrons::Float32,
+        w.originalcount::Float32,
+   )
+end
+
+function egs_writer(f, path, P)
+    w = egs_writer(path, P)
+    ret = call_fenced(f,w)
+    close(w)
+    ret
+end
+
+function egs_writer(path::AbstractString, P)
+    io = open(path, "w")
+    egs_writer(io, P)
+end
+
+function egs_writer(io::IO, ::Type{P}) where {P <: EGSParticle}
+    I = typeof(io)
+    w = EGSWriter{P,I}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.))
+    h = create_header(w)
+    write_header(io, h)
+    w
+end
+
+function Base.close(w::EGSWriter)
+    h = create_header(w)
+    seekstart(w.io)
+    write_header(w.io, h)
+    close(w.io)
+end

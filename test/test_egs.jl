@@ -26,4 +26,23 @@ using PhaseSpaceIO: ptype, EGSHeader, write_header, write_particle, EGSParticle
     end
 end
 
+@testset "test egs_iterator egs_writer" begin
+    for _ in 1:100
+        ZSLAB = rand(Bool) ? Nothing : Float32
+        n = rand(1:1000)
+        P = EGSParticle{ZSLAB}
+        ps = [arbitrary(P) for _ in 1:n]
+        path = tempname() * ".egsphsp1"
+        egs_writer(path,P) do w
+            for p in ps
+                write(w, p)
+            end
+        end
+        @test ispath(path)
+        ps_reload = egs_iterator(collect, path)
+        @test all(ps_reload .≈ ps)
+        rm(path)
+    end
+end
+
 end #module

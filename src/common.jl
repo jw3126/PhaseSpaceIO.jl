@@ -42,3 +42,7 @@ function compute_u_v_w(u, v, sign_w)
     end
     u,v,w
 end
+
+@noinline function call_fenced(f::F, arg::A) where {F,A}
+    f(arg)
+end
