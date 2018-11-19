@@ -1,7 +1,11 @@
 module Getters
-using PhaseSpaceIO: Particle
+using PhaseSpaceIO: IAEAParticle, EGSParticle
 
-for field in fieldnames(Particle{0,0})
+FIELDNAMES = union(Set(fieldnames(IAEAParticle{0,0})),
+               Set(fieldnames(EGSParticle{Float32}))
+              )
+
+for field in FIELDNAMES
     @eval ($field)(p) = p.$field
     @eval export $field
 end

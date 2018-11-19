@@ -1,17 +1,11 @@
+export phsp_iterator
 export iaea_iterator
 export iaea_writer
+export egs_iterator
+export egs_writer
 
 function iaea_writer end
 
-@noinline function _apply(f,iter::PhaseSpaceIterator)
-    f(iter)
-end
-function iaea_iterator(f, path)
-    phsp = iaea_iterator(path)
-    ret = _apply(f,phsp)
-    close(phsp)
-    ret
-end
 iaea_iterator(path) = iaea_iterator(IAEAPath(path))
 
 function iaea_iterator(path::IAEAPath)
@@ -19,5 +13,35 @@ function iaea_iterator(path::IAEAPath)
     @argcheck ispath(path.phsp)
     h = load(path.header, RecordContents)
     io = open(path.phsp)
-    PhaseSpaceIterator(io,h)
+    IAEAPhspIterator(io,h)
+end
+
+function egs_iterator(path::AbstractString)
+    io = open(path, "r")
+    egs_iterator(io)
+end
+
+function phsp_iterator(f, path::IAEAPath)
+    iaea_iterator(f, path)
+end
+
+function phsp_iterator(f, path::AbstractString)
+    stem, ext = splitext(path)
+    if startswith(ext, ".IAEA")
+        iaea_iterator(f, path)
+    elseif startswith(ext, ".egsphsp")
+        egs_iterator(f, path)
+    else
+        msg = "Cannot guess format from file extension for $path."
+        throw(ArgumentError(msg))
+    end
+end
+
+for xxx_iterator in [:egs_iterator, :iaea_iterator]
+    @eval function $(xxx_iterator)(f, path)
+        iter = $(xxx_iterator)(path)
+        ret = call_fenced(f, iter)
+        close(iter)
+        ret
+    end
 end

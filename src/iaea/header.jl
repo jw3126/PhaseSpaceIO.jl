@@ -1,9 +1,3 @@
-function load(path::AbstractString, T)
-    open(path) do io
-        load(io, T)
-    end
-end
-
 function load(io::IO, ::Type{RecordContents})
     read_header(io)
 end

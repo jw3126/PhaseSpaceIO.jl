@@ -13,14 +13,14 @@ using PhaseSpaceIO.Testing
 end
 
 @testset "Setfield" begin
-    p = Particle(1,2,3,4,5,6,0,0,1,true,(),())
+    p = IAEAParticle(photon,2,3,4,5,6,0,0,1,true,(),())
     q = @set p.x = 10
     @test q.x == 10
     @test p.x == 4
 end
 
 @testset "histogram" begin
-    p = arbitrary(Particle{0,0})
+    p = arbitrary(IAEAParticle{0,0})
     p = @set p.E = 1
     p = @set p.x = 1
     p = @set p.weight = 1
@@ -52,14 +52,14 @@ end
     @test h.weights == [2 2 0; 1 0 0]
 end
 
-@testset "download" begin
-    key = "VarianClinaciX_6MV_05x05"
-    dir = tempdir()
-    path = iaea_download(key, dir=dir)
-    path2 = iaea_download(key, dir=dir)
-    @test path2 == path
-    ps = iaea_iterator(collect, path)
-    @test length(ps) == 432410
-end
+# @testset "download" begin
+#     key = "VarianClinaciX_6MV_05x05"
+#     dir = tempdir()
+#     path = iaea_download(key, dir=dir)
+#     path2 = iaea_download(key, dir=dir)
+#     @test path2 == path
+#     ps = iaea_iterator(collect, path)
+#     @test length(ps) == 432410
+# end
 
 end
