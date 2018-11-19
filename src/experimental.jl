@@ -44,7 +44,7 @@ function histmap(getters_particles...;
     end
 end
 
-function Base.filter(f, iter::IAEAPhspIterator; maxlength=10^7)
+function Base.filter(f, iter::AbstractPhspIterator; maxlength=10^7)
     if maxlength == nothing
         maxlength = -1
     end

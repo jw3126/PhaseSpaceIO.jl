@@ -1,3 +1,4 @@
+export phsp_iterator
 export iaea_iterator
 export iaea_writer
 export egs_iterator
@@ -18,6 +19,22 @@ end
 function egs_iterator(path::AbstractString)
     io = open(path, "r")
     egs_iterator(io)
+end
+
+function phsp_iterator(f, path::IAEAPath)
+    iaea_iterator(f, path)
+end
+
+function phsp_iterator(f, path::AbstractString)
+    stem, ext = splitext(path)
+    if startswith(ext, ".IAEA")
+        iaea_iterator(f, path)
+    elseif startswith(ext, ".egsphsp")
+        egs_iterator(f, path)
+    else
+        msg = "Cannot guess format from file extension for $path."
+        throw(ArgumentError(msg))
+    end
 end
 
 for xxx_iterator in [:egs_iterator, :iaea_iterator]

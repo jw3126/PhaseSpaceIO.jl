@@ -3,13 +3,15 @@ using PhaseSpaceIO: IAEAParticle, ParticleType,
 EGSHeader, EGSParticle, latchpattern, photon, electron, positron,
 particle_type_from_latch
 export arbitrary
+export assetpath
+
+function assetpath(args...)
+    joinpath(@__DIR__, "..", "test", "assets", args...)
+end
 
 function arbitrary(::Type{IAEAParticle{Nf,Ni}}) where {Nf, Ni}
     typ = rand([instances(ParticleType)...])
     E = 100*rand()
-    if typ != photon
-        E = min(E, 0.512)
-    end
     weight = rand()
     x = randn(Float32)
     y = randn(Float32)
@@ -48,15 +50,14 @@ function arbitrary(H::Type{EGSHeader{P}};
     originalcount)
 end
 
-function arbitrary(P::Type{EGSParticle{ZLAST}}) where {ZLAST}
-    E = rand(Float32)
-    typ = rand([electron, positron, photon])
+function arbitrary(P::Type{EGSParticle{ZLAST}};
+        typ = rand([electron, positron, photon]),
+        E = rand(Float32),
+        x = randn(Float32),
+        y = randn(Float32),
+        ) where {ZLAST}
+
     latch = latchpattern(typ)
-    if Bool((30 >> latch) & UInt32(1 << 30))
-        latch |= UInt32(1 << 29)
-    end
-    x = randn(Float32)
-    y = randn(Float32)
     u = randn()
     v = randn()
     w = randn()
@@ -66,7 +67,7 @@ function arbitrary(P::Type{EGSParticle{ZLAST}}) where {ZLAST}
     w = Float32(scale * w)
     new_history = rand(Bool)
     weight = 10*rand(Float32)
-    typ = particle_type_from_latch(latch)
+    @assert typ == particle_type_from_latch(latch)
     if ZLAST == Nothing
         zlast = nothing
     else

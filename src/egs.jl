@@ -1,5 +1,25 @@
 export EGSParticle
 
+function rest_energy(p::ParticleType)::Float64
+    if p == photon
+        0.
+    elseif p == electron
+        0.511
+    elseif p == positron
+        0.511
+    else
+        msg = "Rest energy of $p should not be used"
+        throw(ArgumentError(msg))
+    end
+end
+
+function kin2total(Ekin::Float32, p::ParticleType)
+    Float32(Float64(Ekin) + rest_energy(p))
+end
+function total2kin(Etotal::Float32, p::ParticleType)
+    Float32(Float64(Etotal) - rest_energy(p))
+end
+
 function read_ZLAST(io::IO)
     mode = prod([read(io, Char) for _ in 1:5])
     if mode == "MODE0"
@@ -13,7 +33,7 @@ end
 
 struct EGSParticle{ZLAST <: Union{Nothing, Float32}}
     typ::ParticleType
-    E::Float32
+    E::Float32  # kinetic energy
     weight::Float32
     x::Float32
     y::Float32
@@ -142,7 +162,7 @@ function latchpattern(p::ParticleType)::UInt32
     elseif p == electron
         UInt32(1 << 30)
     elseif p == positron
-        UInt32(1<<29)
+        UInt32(1 << 29)
     else
         msg = "Unsupported particle type $p"
         throw(ArgumentError(msg))
@@ -152,9 +172,9 @@ end
 function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
     latch = readbuf!(UInt32, buf)
     
-    E = readbuf!(Float32, buf)
-    new_history = E < 0
-    E = abs(E)
+    E_tot = readbuf!(Float32, buf)
+    new_history = E_tot < 0
+    E_tot = abs(E_tot)
     
     x = readbuf!(Float32, buf)
     y = readbuf!(Float32, buf)
@@ -171,6 +191,7 @@ function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
     ZLAST = zlast_type(h)
     zlast = readbuf!(ZLAST, buf)
     typ = particle_type_from_latch(latch)
+    E = total2kin(E_tot, typ)
     EGSParticle(
         typ::ParticleType,
         E::Float32,
@@ -223,9 +244,10 @@ end
 function write_particle(io::IO, p::EGSParticle)
     sign_E = (-1)^p.new_history
     sign_weight = sign(p.w)
+    E = sign_E * kin2total(p.E, p.typ)
     ret = 0
     ret += write(io, p.latch)
-    ret += write(io, sign_E * p.E)
+    ret += write(io, E  )
     ret += write(io, p.x)
     ret += write(io, p.y)
     ret += write(io, p.u)
@@ -250,13 +272,10 @@ function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
     w.particlecount += 1
     if p.typ == photon
         w.photoncount += 1
-        E_kin = p.E
-    else
-        E_kin = p.E - 0.511
     end
-    w.max_E_kin = max(w.max_E_kin, E_kin)
+    w.max_E_kin = max(w.max_E_kin, p.E)
     if p.typ == electron
-        w.min_E_kin_electrons = min(w.min_E_kin_electrons, E_kin)
+        w.min_E_kin_electrons = min(w.min_E_kin_electrons, p.E)
     end
     write_particle(w.io, p)
 end
