@@ -6,8 +6,6 @@ using PhaseSpaceIO.Testing
 
 using PhaseSpaceIO: ptype, read_particle, write_particle
 
-assetpath(args...) = joinpath(@__DIR__, "assets", args...)
-
 @testset "read write single particle" begin
     h = RecordContents{0,1}()
     P = ptype(h)

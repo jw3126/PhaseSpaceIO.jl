@@ -94,10 +94,10 @@ function Base.isapprox(p1::EGSParticle,
     p1.typ == p2.typ  &&
     p1.latch == p2.latch &&
     p1.new_history   == p2.new_history    &&
-    isapprox(p1.E,      p2.E;      kw...) &&
-    isapprox(p1.weight, p2.weight; kw...) &&
-    isapprox([p1.x, p1.y], [p2.x, p2.y]; kw...) &&
-    isapprox([p1.u, p1.v, p1.w], [p2.u, p2.v, p2.w]; kw...)
+    isapprox(
+             [p1.E, p1.weight, p1.x, p1.y, p1.u, p1.v, p1.w],
+             [p2.E, p2.weight, p2.x, p2.y, p2.u, p2.v, p2.w];
+            kw...)
 end
 
 function zlast_type(::Type{EGSParticle{ZLAST}}) where {ZLAST}   
