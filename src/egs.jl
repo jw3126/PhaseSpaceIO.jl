@@ -59,7 +59,7 @@ struct EGSPhspIterator{H <: EGSHeader, I <:IO} <: AbstractPhspIterator
     length::Int64
 end
 
-function Base.eltype(::Type{EGSPhspIterator{H}}) where {H}
+function Base.eltype(::Type{<:EGSPhspIterator{H}}) where {H}
     ptype(H)
 end
 
@@ -142,7 +142,7 @@ function latchpattern(p::ParticleType)::UInt32
     elseif p == electron
         UInt32(1 << 30)
     elseif p == positron
-        UInt32( (1<<30) | (1<<29))
+        UInt32(1<<29)
     else
         msg = "Unsupported particle type $p"
         throw(ArgumentError(msg))

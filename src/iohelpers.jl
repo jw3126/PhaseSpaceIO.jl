@@ -44,3 +44,13 @@ function bytelength(io::IO)
     end_pos - start_pos
 end
 
+function getbit(x::Integer, i)
+    (x & (1 << i)) == (1 << i)
+end
+
+function setbit(x::Integer, val::Bool, i)
+    T = typeof(x)
+    newbit = T(val)
+    mask = (T(-newbit) ⊻ x) & (T(1) << i)
+    x ⊻ mask
+end

@@ -31,7 +31,7 @@ end
         ZSLAB = rand(Bool) ? Nothing : Float32
         n = rand(1:1000)
         P = EGSParticle{ZSLAB}
-        ps = [arbitrary(P) for _ in 1:n]
+        ps = P[arbitrary(P) for _ in 1:n]
         path = tempname() * ".egsphsp1"
         egs_writer(path,P) do w
             for p in ps
@@ -41,6 +41,7 @@ end
         @test ispath(path)
         ps_reload = egs_iterator(collect, path)
         @test all(ps_reload .≈ ps)
+        @test eltype(ps) == eltype(ps_reload)
         rm(path)
     end
 end
