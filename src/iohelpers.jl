@@ -1,37 +1,41 @@
-const ByteBuffer = AbstractVector{UInt8}
-
-@generated function readtuple(io::IO, ::Type{T}) where {T <: Tuple}
-    args = [:(read(io, $Ti)) for Ti ∈ T.parameters]
-    Expr(:call, :tuple, args...)
+struct FastReadIO{I <: IO} <: IO
+    io::I
+    ref::Base.RefValue{UInt8}
 end
 
-@generated function readbuf!( ::Type{T}, buf::ByteBuffer) where {T <: Tuple}
-    args = [:(readbuf!($Ti, buf)) for Ti ∈ T.parameters]
-    Expr(:call, :tuple, args...)
+FastReadIO(io::IO) = FastReadIO(io, Ref(0x00))
+FastReadIO(o::FastReadIO) = o
+
+for f in [:seekstart, :seekend, :position, :eof, :close]
+    @eval Base.$f(o::FastReadIO) = $f(o.io)
+end
+Base.seek(o::FastReadIO, pos) = seek(o.io, pos)
+
+function read_(o::FastReadIO, ::Type{UInt8})
+    read!(o.io, o.ref)
+    o.ref[]
 end
 
-function readbuf!(::Type{T}, buf::ByteBuffer) where {T}
-    @argcheck sizeof(T) == sizeof(UInt32)
-    reinterpret(T, readbuf!(UInt32, buf))
-end
-
-function readbuf!(::Type{Nothing}, buf::ByteBuffer)
-    nothing
-end
-
-function readbuf!(::Type{UInt8}, buf::ByteBuffer)
-    popfirst!(buf)
-end
-function readbuf!(T::Type{Int8}, buf::ByteBuffer)
-    reinterpret(T, readbuf!(UInt8, buf))
-end
-
-function readbuf!(::Type{UInt32}, buf::ByteBuffer)
-    b4 = UInt32(popfirst!(buf)) << 0
-    b3 = UInt32(popfirst!(buf)) << 8
-    b2 = UInt32(popfirst!(buf)) << 16
-    b1 = UInt32(popfirst!(buf)) << 24
+function read_(o::FastReadIO, ::Type{UInt32})
+    b4 = UInt32(read_(o, UInt8)) << 0
+    b3 = UInt32(read_(o, UInt8)) << 8
+    b2 = UInt32(read_(o, UInt8)) << 16
+    b1 = UInt32(read_(o, UInt8)) << 24
     b1 + b2 + b3 + b4
+end
+
+read_(o::FastReadIO, ::Type{Nothing}) = nothing
+read_(o::FastReadIO, ::Type{Float32}) = reinterpret(Float32, read_(o, UInt32))
+read_(o::FastReadIO, ::Type{Int32}) = reinterpret(Int32, read_(o, UInt32))
+read_(o::FastReadIO, ::Type{Int8}) = reinterpret(Int8, read_(o, UInt8))
+read_(o::FastReadIO, ::Type{Char}) = Char(read_(o, UInt8))
+
+read_(io::IO, ::Type{T}) where {T} = read(io, T)
+read_(io::IO, ::Type{Nothing}) = nothing
+
+@generated function read_(io::IO, ::Type{T}) where {T <: Tuple}
+    args = [:(read_(io, $Ti)) for Ti ∈ T.parameters]
+    Expr(:call, :tuple, args...)
 end
 
 function bytelength(io::IO)

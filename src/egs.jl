@@ -21,7 +21,7 @@ function total2kin(Etotal::Float32, p::ParticleType)
 end
 
 function read_ZLAST(io::IO)
-    mode = prod([read(io, Char) for _ in 1:5])
+    mode = prod([read_(io, Char) for _ in 1:5])
     if mode == "MODE0"
         Nothing
     elseif mode == "MODE2"
@@ -73,9 +73,6 @@ end
 struct EGSPhspIterator{H <: EGSHeader, I <:IO} <: AbstractPhspIterator
     io::I
     header::H
-    # currently read(io, Float32) allocates,
-    # but read!(io, buf) does not
-    buf::Vector{UInt8}
     length::Int64
 end
 
@@ -121,24 +118,23 @@ end
 function consume_egs_header(io::IO)
     ZLAST = read_ZLAST(io)
     P = EGSParticle{ZLAST}
-    nphsp = read(io, Int32)
-    nphotphsp = read(io, Int32)
-    ekmaxphsp = read(io, Float32)
-    ekminphspe = read(io, Float32)
-    nincphsp = read(io, Float32)
+    nphsp = read_(io, Int32)
+    nphotphsp = read_(io, Int32)
+    ekmaxphsp = read_(io, Float32)
+    ekminphspe = read_(io, Float32)
+    nincphsp = read_(io, Float32)
     EGSHeader{P}(nphsp, nphotphsp, ekmaxphsp, ekminphspe, nincphsp)
 end
 
 function egs_iterator(io::IO)
     h = consume_egs_header(io)
-    buf = Vector{UInt8}()
     total_size  = bytelength(io)
     particle_size = ptype_disksize(h)
     header_size = particle_size
     body_size = total_size - header_size
     len = Int64(body_size / particle_size)
     @assert len == h.particlecount
-    EGSPhspIterator(io, h, buf, len)
+    EGSPhspIterator(io, h, len)
 end
 
 function particle_type_from_latch(latch)::ParticleType
@@ -169,27 +165,26 @@ function latchpattern(p::ParticleType)::UInt32
     end
 end
 
-function readbuf_particle!(buf::ByteBuffer, h::EGSHeader)
-    latch = readbuf!(UInt32, buf)
+function read_particle(io::IO, h::EGSHeader)
+    latch = read_(io,UInt32)
     
-    E_tot = readbuf!(Float32, buf)
+    E_tot = read_(io, Float32)
     new_history = E_tot < 0
     E_tot = abs(E_tot)
     
-    x = readbuf!(Float32, buf)
-    y = readbuf!(Float32, buf)
+    x = read_(io, Float32)
+    y = read_(io, Float32)
+    u = read_(io, Float32)
+    v = read_(io, Float32)
     
-    u = readbuf!(Float32, buf)
-    v = readbuf!(Float32, buf)
-    
-    weight = readbuf!(Float32, buf)
+    weight = read_(io, Float32)
     
     sign_w = sign(weight)
     weight = abs(weight)
     u,v,w = compute_u_v_w(u,v,sign_w)
 
     ZLAST = zlast_type(h)
-    zlast = readbuf!(ZLAST, buf)
+    zlast = read_(io, ZLAST)
     typ = particle_type_from_latch(latch)
     E = total2kin(E_tot, typ)
     EGSParticle(

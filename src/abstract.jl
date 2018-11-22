@@ -18,7 +18,7 @@ end
     if eof(iter.io)
         nothing
     else
-        p = read_particle_explicit_buf(io, h, iter.buf)
+        p = read_particle(io, h)
         dummy_state = nothing
         p, dummy_state
     end
