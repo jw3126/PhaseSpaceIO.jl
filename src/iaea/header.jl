@@ -77,7 +77,7 @@ end
 
 function RecordContents(d::AbstractDict)
 
-    contents = cleanup_record(d[:RECORD_CONTENTS])
+    contents  = cleanup_record(d[:RECORD_CONTENTS])
     constants = cleanup_record(d[:RECORD_CONSTANT])
 
     read_next!(T, c) = parse(T, popfirst!(c))
@@ -91,7 +91,7 @@ function RecordContents(d::AbstractDict)
         end
     end
 
-    d = Dict()
+    d = OrderedDict()
     add_next_default!(d,:x,contents, constants)
     add_next_default!(d,:y,contents, constants)
     add_next_default!(d,:z,contents, constants)
@@ -99,7 +99,7 @@ function RecordContents(d::AbstractDict)
     add_next_default!(d,:v,contents, constants)
     add_next_default!(d,:w,contents, constants)
     @assert !haskey(d, :w)
-    add_next_default!(d, :wt, contents, constants)
+    add_next_default!(d, :weight, contents, constants)
     Nf = read_next!(Int, contents)
     Ni = read_next!(Int, contents)
     @assert isempty(constants)

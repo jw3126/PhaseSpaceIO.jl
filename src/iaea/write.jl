@@ -154,10 +154,10 @@ function print_record_contents(io::IO, r::RecordContents)
     print_key(io, "RECORD_CONTENTS")
     record_constants = Float32[]
     for propstr in ["X","Y","Z", "U","V","W", "Weight"]
-        field = Symbol(string(propstr))
+        field = Symbol(lowercase(string(propstr)))
         if field in propertynames(t)
             val = 0
-            push!(record_constants, t.field)
+            push!(record_constants, getproperty(t, field))
         else
             val = 1
         end
@@ -172,7 +172,7 @@ function print_record_contents(io::IO, r::RecordContents)
     
     print_key(io, "RECORD_CONSTANT")
     for c in record_constants
-        println(c)
+        println(io, c)
     end
     println(io)
 end
