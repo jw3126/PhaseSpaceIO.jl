@@ -12,12 +12,12 @@ function iaea_iterator(path::IAEAPath)
     @argcheck ispath(path.header)
     @argcheck ispath(path.phsp)
     h = load(path.header, RecordContents)
-    io = open(path.phsp)
+    io = FastReadIO(open(path.phsp))
     IAEAPhspIterator(io,h)
 end
 
 function egs_iterator(path::AbstractString)
-    io = open(path, "r")
+    io = FastReadIO(open(path, "r"))
     egs_iterator(io)
 end
 

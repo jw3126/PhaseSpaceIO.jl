@@ -13,13 +13,13 @@ function ptype_disksize(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     ptype_disksize_nodefaults(h) - size_reduction_due_to_defaults
 end
 
-@generated function readbuf_default!(buf::ByteBuffer,
+@generated function read_default(io::IO,
                              ::Val{field},
                              h::RecordContents{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
         :(h.data.$field)
     else
-        :(readbuf!(Float32, buf))
+        :(read_(io, Float32))
     end
 end
 
@@ -36,26 +36,26 @@ end
         :(write(io, p.$field))
     end
 end
-@noinline function readbuf_particle!(buf::ByteBuffer, h::RecordContents{Nf, Ni}) where {Nf, Ni}
+@noinline function read_particle(io::IO, h::RecordContents{Nf, Ni}) where {Nf, Ni}
 
     P = ptype(h)
-    typ8 = readbuf!(Int8, buf)
+    typ8 = read_(io, Int8)
     typ = ParticleType(abs(typ8))
-    E = readbuf!(Float32, buf)
+    E = read_(io, Float32)
     new_history = E < 0
     E = abs(E)
-    x = readbuf_default!(buf, Val(:x), h)
-    y = readbuf_default!(buf, Val(:y), h)
-    z = readbuf_default!(buf, Val(:z), h)
-    u = readbuf_default!(buf, Val(:u), h)
-    v = readbuf_default!(buf, Val(:v), h)
-    weight = readbuf_default!(buf, Val(:weight), h)
+    x = read_default(io, Val(:x), h)
+    y = read_default(io, Val(:y), h)
+    z = read_default(io, Val(:z), h)
+    u = read_default(io, Val(:u), h)
+    v = read_default(io, Val(:v), h)
+    weight = read_default(io, Val(:weight), h)
     
     sign_w = Float32(-1)^(typ8 < 0)
     u,v,w = compute_u_v_w(u,v,sign_w)
     
-    extra_floats = readbuf!(NTuple{Nf, Float32}, buf)
-    extra_ints = readbuf!(NTuple{Ni, Int32}, buf)
+    extra_floats = read_(io, NTuple{Nf, Float32})
+    extra_ints = read_(io, NTuple{Ni, Int32})
     P(typ,
         E,weight,
         x,y,z,

@@ -15,21 +15,6 @@ function load(path::AbstractString, T)
     end
 end
 
-function read_particle(io::IO, h)
-    bufsize = ptype_disksize(h)
-    buf = Vector{UInt8}(undef,bufsize)
-    read_particle_explicit_buf(io, h, buf)
-end
-
-function read_particle_explicit_buf(io::IO, h, buf::ByteBuffer)
-    bufsize = ptype_disksize(h)
-    readbytes!(io, buf, bufsize)
-    @assert length(buf) == bufsize
-    p = readbuf_particle!(buf, h)
-    @assert length(buf) == 0
-    p
-end
-
 function compute_u_v_w(u, v, sign_w)
     tmp = Float64(u)^2 + Float64(v)^2
     if tmp <= 1

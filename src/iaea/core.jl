@@ -91,22 +91,17 @@ end
 struct IAEAPhspIterator{H,I<:IO} <: AbstractPhspIterator
     io::I
     header::H
-    # currently read(io, Float32) allocates,
-    # but read!(io, buf) does not
-    buf::Vector{UInt8}
     length::Int64
 end
 
 function IAEAPhspIterator(io::IO,h::RecordContents)
     H = typeof(h)
     I = typeof(io)
-    buf = Vector{UInt8}()
     bl = bytelength(io)
     length = Int64(bl / ptype_disksize(h))
-    IAEAPhspIterator{H,I}(io, h,buf, length)
+    IAEAPhspIterator{H,I}(io, h, length)
 end
 
 function Base.eltype(::Type{<:IAEAPhspIterator{H}}) where {H}
     ptype(H)
 end
-
