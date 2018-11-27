@@ -115,7 +115,7 @@ function get_keys_edges(f, items, nbins, edges)
     get_keys_edges(f, items, nothing, edges)
 end
 
-function binning(f,items, nbins=nothing, edges=nothing)
+function binning(f,items; nbins=nothing, edges=nothing)
     keys, edges = get_keys_edges(f, items, nbins, edges)
     binning_edges_keys_items(edges, keys, items)
 end
