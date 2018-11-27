@@ -65,9 +65,20 @@ function Base.filter(f, iter::AbstractPhspIterator; maxlength=10^7)
     ret
 end
 
-struct Binning{C,E <: AbstractVector}
+const Edges{N} = NTuple{N, AbstractVector}
+struct Binning{C <: AbstractArray,E <: Edges}
     edges::E
-    content::Vector{C}
+    content::C 
+    # Example:
+    # 
+    # want to bin particles by their x,y coordinates
+    # which are between -10 and 10 cm (-15 to 15 for y)
+    # In that case we would have say
+    # edges = (-10:10, -15:15)
+    # content::Matrix{Vector{Particle}}
+    # of size (20,30)
+    # each cell of content stores the particles that have appropriate
+    # x,y coordinates
 end
 
 function Base.map(f,b::Binning)
@@ -80,16 +91,33 @@ function StatsBase.Histogram(b::Binning)
     Histogram(b.edges, b.content, closed, isdensity)
 end
 
-function binning_edges_keys_items(edges, keys, items)
+function find_bin_index(edges, key::Number)
+    find_bin_index(edges, (key,))
+end
+
+function find_bin_index(edges, key)
+    map(find_bin_index, edges, key)
+end
+
+function find_bin_index(bdries::AbstractVector, key::Number)
+    index = searchsortedfirst(bdries, key) - 1
+    clamp(index, 1, length(bdries))
+end
+
+function binning_edges_keys_items(edges::NTuple{N}, keys, items) where {N}
     @argcheck length(keys) == length(items)
     T = eltype(items)
     C = Vector{T}
-    n = length(edges) - 1
-    content = C[C() for _ in 1:n]
+    dims = map(edges) do xs
+        length(xs) - 1
+    end
+    content = Array{Vector{T},N}(undef, dims)
+    for i in eachindex(content)
+        content[i] = C()
+    end
     for (key, item) in zip(keys, items)
-        index = searchsortedfirst(edges, key) - 1
-        index = clamp(index, 1, n)
-        push!(content[index], item)
+        index = find_bin_index(edges, key)
+        push!(content[index...], item)
     end
     Binning(edges, content)
 end
