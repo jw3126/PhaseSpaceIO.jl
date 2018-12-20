@@ -101,7 +101,7 @@ end
 
 function find_bin_index(bdries::AbstractVector, key::Number)
     index = searchsortedfirst(bdries, key) - 1
-    clamp(index, 1, length(bdries))
+    clamp(index, 1, length(bdries) - 1)
 end
 
 function binning_edges_keys_items(edges::NTuple{N}, keys, items) where {N}
