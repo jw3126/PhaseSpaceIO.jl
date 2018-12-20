@@ -79,6 +79,23 @@ function println_kv(io::IO, k, v)
     println(io)
 end
 
+function println_particle_count(io, d, p::ParticleType)
+    key = if p == photon
+            :PHOTONS
+        elseif p == electron
+            :ELECTRONS
+        elseif p == positron
+            :POSITRONS
+        elseif p == proton
+            :PROTONS
+        elseif p == neutron
+            :NEUTRONS
+        else
+            error("Unknown particle type $p")
+        end
+    println_kv(io, key, d[p])
+end
+
 function print_header(io::IO, w::IAEAPhspWriter)
     println_kv(io, :IAEA_INDEX, "0 // test header")
     println_kv(io, :TITLE, "")
@@ -91,12 +108,13 @@ function print_header(io::IO, w::IAEAPhspWriter)
     print_record_contents(io, r)
     println_kv(io, :RECORD_LENGTH, record_length)
     println_kv(io, :BYTE_ORDER, "1234")
-    println_kv(io, :ORIG_HISTORIES, "18446744073709551615")
+    println_kv(io, :ORIG_HISTORIES, "$(typemax(Int32))")
     println_kv(io, :PARTICLES, ga.length)
-    # TODO particle counts
-    # $PHOTONS:
-    # 1
-    # 
+
+    for p in keys(ga.counts)
+        println_particle_count(io, ga.counts, p)
+    end
+
     println_kv(io, :TRANSPORT_PARAMETERS, "")
     println_kv(io, :MACHINE_TYPE, "")
     println_kv(io, :MONTE_CARLO_CODE_VERSION, "")
@@ -121,7 +139,12 @@ function print_header(io::IO, w::IAEAPhspWriter)
     println_kv(io, :ADDITIONAL_NOTES, "Generated via PhaseSpaceIO.jl")
     # # TODO:
     # println_kv(io, :STATISTICAL_INFORMATION_PARTICLES, "")
-    # println_kv(io, :STATISTICAL_INFORMATION_GEOMETRY, "")
+    stats = """
+    // cm
+       $(ga.x_min)  $(ga.x_max)
+       $(ga.y_min)  $(ga.y_max)
+       $(ga.z_min)  $(ga.z_max)"""
+    println_kv(io, :STATISTICAL_INFORMATION_GEOMETRY, stats)
 end
 
 function extra_float_count(r::RecordContents{Nf, Ni, Nt}) where {Nf, Ni, Nt}
@@ -150,7 +173,7 @@ function print_record_contents(io::IO, r::RecordContents)
     # $RECORD_LENGTH:
     # 33
     t = r.data
-    
+
     print_key(io, "RECORD_CONTENTS")
     record_constants = Float32[]
     for propstr in ["X","Y","Z", "U","V","W", "Weight"]
