@@ -231,6 +231,7 @@ function write_header(io::IO, h::EGSHeader)
     @assert ret == ptype_disksize(h)
     ret
 end
+
 function write_particle(io::IO, p::EGSParticle, h::EGSHeader)
     ret = write_particle(io,p)
     @assert ret == ptype_disksize(h)
@@ -254,13 +255,23 @@ function write_particle(io::IO, p::EGSParticle)
     ret
 end
 
-mutable struct EGSWriter{P <: EGSParticle, I}
-    io::IO
+mutable struct EGSWriter{P <: EGSParticle, I <: IO}
+    io::I
     particlecount::Int32
     photoncount::Int32
     max_E_kin::Float32
     min_E_kin_electrons::Float32
     originalcount::Float32
+    function EGSWriter{P}(io::I, particlecount, photoncount,
+                       max_E_kin, min_E_kin_electrons,
+                       originalcount) where {P,I}
+
+        w = new{P,I}(io, particlecount, photoncount,
+                       max_E_kin, min_E_kin_electrons,
+                       originalcount)
+        finalizer(close, w)
+        w
+    end
 end
 
 function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
@@ -298,16 +309,24 @@ function egs_writer(path::AbstractString, P)
 end
 
 function egs_writer(io::IO, ::Type{P}) where {P <: EGSParticle}
-    I = typeof(io)
-    w = EGSWriter{P,I}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.))
+    w = EGSWriter{P}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.))
     h = create_header(w)
     write_header(io, h)
     w
 end
 
+function Base.flush(w::EGSWriter)
+    if isopen(w.io)
+        h = create_header(w)
+        pos = position(w.io)
+        seekstart(w.io)
+        write_header(w.io, h)
+        seek(w.io, pos)
+    end
+    flush(w.io)
+end
+
 function Base.close(w::EGSWriter)
-    h = create_header(w)
-    seekstart(w.io)
-    write_header(w.io, h)
+    flush(w)
     close(w.io)
 end

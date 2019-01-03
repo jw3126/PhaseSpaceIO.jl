@@ -62,4 +62,22 @@ end
     @test h_truth == h_loaded
 end
 
+@testset "finalizer" begin
+    function write_sloppy(path, ps)
+        P = eltype(ps)
+        w = egs_writer(path, P)
+        for p in ps
+            write(w, p)
+        end
+    end
+    path = tempname() * ".egsphsp"
+    ps = [arbitrary(EGSParticle{Nothing})]
+    write_sloppy(path, ps)
+    GC.gc()
+    ps2 = phsp_iterator(collect, path)
+    @test length(ps) == length(ps2) == 1
+    @test first(ps) ≈ first(ps2)
+    rm(path)
+end
+
 end #module

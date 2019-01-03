@@ -24,11 +24,18 @@ function GeneratedAttributes()
     )
 end
 
-struct IAEAPhspWriter{R, I <: IO}
+mutable struct IAEAPhspWriter{R, I <: IO}
     record_contents::R
     generated_attributes::GeneratedAttributes
     io_header::I
     io_phsp::I
+    function IAEAPhspWriter(record_contents::R, generated_attributes,
+                            io_header::I, io_phsp::I) where {R, I}
+        w = new{R,I}(record_contents, generated_attributes,
+                io_header, io_phsp)
+        finalizer(close, w) 
+        w
+    end
 end
 
 function increment(d, key, val=1)
@@ -208,8 +215,16 @@ function iaea_writer(path::IAEAPath, r::RecordContents)
 end
 iaea_writer(path) = iaea_writer(IAEAPath(path))
 
+function Base.flush(w::IAEAPhspWriter)
+    if isopen(w.io_header)
+        print_header(w.io_header, w)
+    end
+    flush(w.io_header)
+    flush(w.io_phsp)
+end
+
 function Base.close(w::IAEAPhspWriter)
-    print_header(w.io_header, w)
+    flush(w)
     close(w.io_header)
     close(w.io_phsp)
 end
