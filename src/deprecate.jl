@@ -2,4 +2,7 @@
 @deprecate Particle IAEAParticle
 @deprecate PhaseSpaceIterator IAEAPhspIterator
 @deprecate PhaseSpaceWriter IAEAPhspWriter
-@deprecate convert(::Type{ParticleType}, i::Integer) ParticleType(i)
+function Base.convert(::Type{ParticleType}, i::Integer) 
+    @warn "convert(::Type{ParticleType}, i::Integer) is deprecated. Use ParticleType(i) instead"
+    ParticleType(i)
+end
