@@ -40,7 +40,9 @@ end
         end
         @test ispath(path)
         ps_reload = egs_iterator(collect, path)
+        ps_reload2 = phsp_iterator(collect, path)
         @test all(ps_reload .≈ ps)
+        @test ps_reload2 == ps_reload
         @test eltype(ps) == eltype(ps_reload)
         rm(path)
     end
