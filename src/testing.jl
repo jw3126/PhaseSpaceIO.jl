@@ -1,7 +1,7 @@
 module Testing
 using PhaseSpaceIO: IAEAParticle, ParticleType,
-EGSHeader, EGSParticle, latchpattern, photon, electron, positron,
-particle_type_from_latch
+EGSHeader, EGSParticle, latchpattern, photon, electron, positron
+using PhaseSpaceIO: Latch
 export arbitrary
 export assetpath
 
@@ -50,14 +50,17 @@ function arbitrary(H::Type{EGSHeader{P}};
     originalcount)
 end
 
+function arbitrary(::Type{Latch})
+    Latch(charge=rand(-1:1))
+end
+
 function arbitrary(P::Type{EGSParticle{ZLAST}};
-        typ = rand([electron, positron, photon]),
+        latch=arbitrary(Latch),
         E = rand(Float32),
         x = randn(Float32),
         y = randn(Float32),
         ) where {ZLAST}
 
-    latch = latchpattern(typ)
     u = randn()
     v = randn()
     w = randn()
@@ -67,25 +70,23 @@ function arbitrary(P::Type{EGSParticle{ZLAST}};
     w = Float32(scale * w)
     new_history = rand(Bool)
     weight = 10*rand(Float32)
-    @assert typ == particle_type_from_latch(latch)
     if ZLAST == Nothing
         zlast = nothing
     else
-        zlast = Float32(randn())
+        zlast = randn(Float32)
     end
     
     EGSParticle(
-        typ::ParticleType,
-        E::Float32,
-        weight::Float32,
-        x::Float32,
-        y::Float32,
-        u::Float32,
-        v::Float32,
-        w::Float32,
-        new_history::Bool,
-        zlast::ZLAST,
-        latch::UInt32,
+        latch=latch,
+        E=E,
+        weight=weight,
+        x=x,
+        y=y,
+        u=u,
+        v=v,
+        w=w,
+        new_history=new_history,
+        zlast=zlast,
    )
 end
 

@@ -1,6 +1,6 @@
-struct FastReadIO{I <: IO} <: IO
+struct FastReadIO{I <: IO,T} <: IO
     io::I
-    ref::Base.RefValue{UInt8}
+    ref::Base.RefValue{T}
 end
 
 FastReadIO(io::IO) = FastReadIO(io, Ref(0x00))

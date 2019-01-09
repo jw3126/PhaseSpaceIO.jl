@@ -20,7 +20,7 @@ function iaea_iterator(path::IAEAPath)
 end
 
 function egs_iterator(path::AbstractString)
-    io = FastReadIO(open(path, "r"))
+    io = open(path, "r")
     egs_iterator(io)
 end
 
