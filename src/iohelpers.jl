@@ -39,6 +39,9 @@ read_(io::IO, ::Type{Nothing}) = nothing
 end
 
 function bytelength(io::IO)
+    # this dose the same as filesize
+    # except that filesize does not work
+    # on IOBuffer
     init_pos = position(io)
     seekstart(io)
     start_pos = position(io)

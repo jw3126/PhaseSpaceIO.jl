@@ -233,9 +233,9 @@ Base.eltype(::Type{<:EGSPhspIterator{P}}) where {P} = P
 
 function egs_iterator(io::IO)
     h = consume_egs_header(io)
-    total_size  = filesize(io)
+    total_size  = bytelength(io)
     P = ptype(h)
-    len = Int64(filesize(io) / sizeof(P)) - 1
+    len = Int64(total_size / sizeof(P)) - 1
     @assert len == h.particlecount
     buffer = Base.RefValue{P}()
     EGSPhspIterator(io, h, buffer, len)
