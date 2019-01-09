@@ -293,33 +293,17 @@ mutable struct EGSWriter{P <: EGSParticle, I <: IO}
     max_E_kin::Float32
     min_E_kin_electrons::Float32
     originalcount::Float32
+    buffer::Base.RefValue{P}
     function EGSWriter{P}(io::I, particlecount, photoncount,
                        max_E_kin, min_E_kin_electrons,
-                       originalcount) where {P,I}
+                       originalcount, buffer) where {P,I}
 
         w = new{P,I}(io, particlecount, photoncount,
                        max_E_kin, min_E_kin_electrons,
-                       originalcount)
+                       originalcount, buffer)
         finalizer(close, w)
         w
     end
-end
-
-# TODO looks like not invented here
-writebytes(io::IO, l::Latch) = write(io, getfield(l, :_data))
-writebytes(io::IO, x) = write(io, x)
-writebytes(io::IO, ::Nothing) = 0
-function writebytes(io::IO, p::EGSParticle)
-    ret = 0
-    ret += writebytes(io, getfield(p, :_latch))
-    ret += writebytes(io, getfield(p, :_E))
-    ret += writebytes(io, getfield(p, :_x))
-    ret += writebytes(io, getfield(p, :_y))
-    ret += writebytes(io, getfield(p, :_u))
-    ret += writebytes(io, getfield(p, :_v))
-    ret += writebytes(io, getfield(p, :_weight))
-    ret += writebytes(io, getfield(p, :_zlast))
-    ret
 end
 
 function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
@@ -331,7 +315,8 @@ function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
     if iselectron(p)
         w.min_E_kin_electrons = min(w.min_E_kin_electrons, p.E)
     end
-    writebytes(w.io, p)
+    w.buffer[] = p
+    write(w.io, w.buffer)
 end
 
 function create_header(w::EGSWriter{P}) where {P}
@@ -357,7 +342,8 @@ function egs_writer(path::AbstractString, P)
 end
 
 function egs_writer(io::IO, ::Type{P}) where {P <: EGSParticle}
-    w = EGSWriter{P}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.))
+    buffer = Base.RefValue{P}()
+    w = EGSWriter{P}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.), buffer)
     h = create_header(w)
     write_header(io, h)
     w
