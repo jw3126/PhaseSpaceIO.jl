@@ -3,6 +3,7 @@ using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
 using PhaseSpaceIO: ptype, EGSHeader, write_header, write_particle, EGSParticle
+using Setfield
 
 @testset "test egs_iterator egs_writer" begin
     for _ in 1:100
@@ -70,6 +71,24 @@ end
     @test length(ps) == length(ps2) == 1
     @test first(ps) ≈ first(ps2)
     rm(path)
+end
+
+@testset "Latch" begin
+    l0 = Latch(zero(UInt32))
+
+    # binary represenation taken from beamdp
+    l = @set l0.creation = 5
+    @test 0b00000101000000000000000000000000 === UInt32(l)
+
+    l = @set l0.brems = true
+    @test 0b00000000000000000000000000000001 === UInt32(l)
+
+    l = @set l0.visited = @BitRegions(2,4,7,21)
+    @test 0b00000000001000000000000010010100 === UInt32(l)
+
+    l = @set l.creation = 3
+    @set! l.visited = @BitRegions(1,3,23)
+    @test 0b00000011100000000000000000001010 === UInt32(l)
 end
 
 end #module
