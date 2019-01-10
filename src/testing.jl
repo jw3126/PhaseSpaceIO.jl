@@ -1,6 +1,6 @@
 module Testing
 using PhaseSpaceIO: IAEAParticle, ParticleType,
-EGSHeader, EGSParticle, latchpattern, photon, electron, positron
+EGSHeader, EGSParticle, photon, electron, positron
 using PhaseSpaceIO: Latch
 export arbitrary
 export assetpath
