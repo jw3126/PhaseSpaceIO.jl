@@ -1,27 +1,205 @@
 export EGSParticle
+export Latch
 
-function rest_energy(p::ParticleType)::Float64
-    if p == photon
-        0.
-    elseif p == electron
-        0.511
-    elseif p == positron
-        0.511
+import Setfield
+#### Latch
+struct Latch
+    _data::UInt32
+end
+
+Base.UInt32(l::Latch) = getfield(l, :_data)
+
+function Latch(charge::Int)
+    Latch(latchpattern(charge))
+end
+
+function Latch(;charge)
+    Latch(Int(charge))
+end
+
+function Base.propertynames(o::Latch)
+    (:charge,)
+end
+
+function get_charge(latch::Latch)
+    l = getfield(latch, :_data)
+    latchmask = (1<<30) | (1<<29)
+    l &= latchmask
+    if l == latchpattern(0)
+        0
+    elseif l == latchpattern(-1)
+        -1
+    elseif l == latchpattern(1)
+        1
     else
-        msg = "Rest energy of $p should not be used"
+        msg = "Unsupported latch pattern $latch"
         throw(ArgumentError(msg))
     end
 end
 
-function kin2total(Ekin::Float32, p::ParticleType)
-    Float32(Float64(Ekin) + rest_energy(p))
+function latchpattern(charge::Int)::UInt32
+    if charge == 0
+        UInt32(0)
+    elseif charge == -1
+        UInt32(1 << 30)
+    elseif charge == 1
+        UInt32(1 << 29)
+    else
+        @argcheck charge in (-1, 0, 1)
+    end
 end
-function total2kin(Etotal::Float32, p::ParticleType)
-    Float32(Float64(Etotal) - rest_energy(p))
+
+function Base.getproperty(o::Latch, s::Symbol)
+    if s == :charge
+        get_charge(o)
+    else
+        @argcheck s in propertynames(o)
+    end
+end
+
+Base.show(io::IO, o::Latch) = kwshow(io, o)
+
+#### EGSParticle
+struct EGSParticle{ZLAST <: Union{Nothing,Float32}}
+    _latch::Latch
+    _E::Float32 # sign bit new histrory
+    _x::Float32
+    _y::Float32
+    _u::Float32
+    _v::Float32
+    _weight::Float32 # sign bit sign w
+    _zlast::ZLAST
+end
+
+# TODO HACKY
+Base.isapprox(p1::EGSParticle, p2::EGSParticle) = p1 === p2
+
+function Base.propertynames(o::EGSParticle)
+    (:latch, :new_history, :E, :x, :y, :u, :v, :w, :weight, :zlast)
+end
+
+function Setfield.setproperties(o::EGSParticle, props)
+    EGSParticle(
+        get(props, :latch, o.latch),
+        get(props, :new_history, o.new_history),
+        get(props, :E, o.E),
+        get(props, :x, o.x),
+        get(props, :y, o.y),
+        get(props, :u, o.u),
+        get(props, :v, o.v),
+        get(props, :w, o.w),
+        get(props, :weight, o.weight),
+        get(props, :zlast, o.zlast),
+    )
+
+end
+
+function EGSParticle(latch::Latch, new_history::Bool, E, x, y, u, v, w, weight, zlast)
+    @argcheck weight >= 0
+    @argcheck E >= 0
+    @argcheck Float32(u^2 + v^2 + w^2) ≈ 1
+    charge = latch.charge
+    E_rest = rest_energy_by_charge(charge)
+    E_tot = kin2total(Float32(E), E_rest)
+    _E = Float32((-1)^new_history * E_tot)
+    _weight = Float32(sign(w) * weight)
+    EGSParticle(latch, _E, Float32(x), Float32(y), Float32(u), Float32(v), _weight, zlast)
+end
+
+function EGSParticle(;latch , new_history=true, E,x,y,u,v,w,weight=1f0,zlast=nothing)
+    EGSParticle(latch, new_history, E, x, y, u, v, w, weight, zlast)
+end
+
+function kwshow(io::IO, o)
+    print(io, typeof(o).name, "(")
+    for pname in propertynames(o)
+        pval = getproperty(o, pname)
+        print(io, string(pname), "=")
+        show(io, pval)
+        print(io, ", ")
+    end
+    print(io, ")")
+end
+
+Base.show(io::IO, o::EGSParticle) = kwshow(io, o)
+
+@inline function Base.getproperty(o::EGSParticle, s::Symbol)
+    if s == :latch
+        get_latch(o)
+    elseif s == :E
+        get_E(o)
+    elseif s == :x
+        get_x(o)
+    elseif s == :y
+        get_y(o)
+    elseif s == :u
+        get_u(o)
+    elseif s == :v
+        get_v(o)
+    elseif s == :w
+        get_w(o)
+    elseif s == :weight
+        get_weight(o)
+    elseif s == :zlast
+        get_zlast(o)
+    elseif s == :new_history
+        get_new_history(o)
+    else
+        throw(ErrorException("$o does not have property $s"))
+    end
+end
+        
+function kin2total(Ekin::Float32, E_rest::Float64)
+    Float32(Float64(Ekin) + E_rest)
+end
+
+function total2kin(Etotal::Float32, E_rest::Float64)
+    Float32(Float64(Etotal) - E_rest)
+end
+
+function rest_energy_by_charge(charge::Int)
+    ifelse(charge == 0, 0., 0.511)
+end
+
+get_latch(o::EGSParticle) = getfield(o, :_latch)
+function get_E(o::EGSParticle) 
+    E_tot = abs(getfield(o, :_E))
+    E_rest = rest_energy_by_charge(o.latch.charge)
+    total2kin(E_tot, E_rest)
+end
+
+get_x(o::EGSParticle) = getfield(o, :_x)
+get_y(o::EGSParticle) = getfield(o, :_y)
+get_u(o::EGSParticle) = getfield(o, :_u)
+get_v(o::EGSParticle) = getfield(o, :_v)
+
+get_weight(o::EGSParticle) = abs(getfield(o, :_weight))
+get_zlast(o::EGSParticle)  = getfield(o, :_zlast)
+get_new_history(o::EGSParticle) = signbit(getfield(o, :_E))
+
+function get_w(o::EGSParticle)
+    u = Float64(get_u(o))
+    v = Float64(get_v(o))
+    sign_w = sign(getfield(o, :_weight))
+    w64 = sign_w * sqrt(1 - u^2 - v^2)
+    Float32(w64)
+end
+
+isphoton(o::EGSParticle) = o.latch.charge == 0
+iselectron(o::EGSParticle) = o.latch.charge == -1
+ispositron(o::EGSParticle) = o.latch.charge == 1
+
+#### EGSHeader, EGSPhspIterator
+struct EGSHeader{P<:EGSParticle}
+    particlecount::Int32
+    photoncount::Int32
+    max_E_kin::Float32
+    min_E_kin_electrons::Float32
+    originalcount::Float32
 end
 
 function read_ZLAST(io::IO)
-    mode = prod([read_(io, Char) for _ in 1:5])
+    mode = prod([read(io, Char) for _ in 1:5])
     if mode == "MODE0"
         Nothing
     elseif mode == "MODE2"
@@ -31,183 +209,58 @@ function read_ZLAST(io::IO)
     end
 end
 
-struct EGSParticle{ZLAST <: Union{Nothing, Float32}}
-    typ::ParticleType
-    E::Float32  # kinetic energy
-    weight::Float32
-    x::Float32
-    y::Float32
-    u::Float32
-    v::Float32
-    w::Float32
-    new_history::Bool
-    zlast::ZLAST
-    latch::UInt32
-end
-
-function EGSParticle(;typ,E,weight=1,x,y,
-                  u,v,w,
-                  new_history=true,
-                  zlast=nothing,
-                  latch = latchpattern(typ))
-    ZLAST = typeof(zlast)
-    EGSParticle{ZLAST}(typ, E, weight,
-                     x,y, u,v,w,
-                     new_history,
-                     zlast, latch)
-end
-
-function Base.show(io::IO, p::EGSParticle)
-    zlast = sprint(show, p.zlast)
-    print(io, "EGSParticle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), zlast=$(zlast), latch=$(p.latch))")
-end
-
-struct EGSHeader{P <: EGSParticle}
-    particlecount::Int32
-    photoncount::Int32
-    max_E_kin::Float32
-    min_E_kin_electrons::Float32
-    originalcount::Float32
-end
-
-struct EGSPhspIterator{H <: EGSHeader, I <:IO} <: AbstractPhspIterator
-    io::I
-    header::H
-    length::Int64
-end
-
-function Base.eltype(::Type{<:EGSPhspIterator{H}}) where {H}
-    ptype(H)
-end
-
-function Base.isapprox(p1::EGSParticle,
-                       p2::EGSParticle;kw...)
-    true
-    if p1.zlast == nothing
-        p2.zlast == nothing || return false
-    else
-        isapprox(p1.zlast, p2.zlast; kw...) || return false
-    end
-    p1.typ == p2.typ  &&
-    p1.latch == p2.latch &&
-    p1.new_history   == p2.new_history    &&
-    isapprox(
-             [p1.E, p1.weight, p1.x, p1.y, p1.u, p1.v, p1.w],
-             [p2.E, p2.weight, p2.x, p2.y, p2.u, p2.v, p2.w];
-            kw...)
-end
-
-function zlast_type(::Type{EGSParticle{ZLAST}}) where {ZLAST}   
-    ZLAST
-end
-function zlast_type(::Type{EGSHeader{P}}) where {P}
-    zlast_type(P)
-end
-function zlast_type(o)
-    zlast_type(typeof(o))
-end
-function ptype(::Type{EGSHeader{P}}) where {P}
-    P
-end
-
-function ptype_disksize(h::EGSHeader)
-    ZLAST = zlast_type(h)
-    sizeof(ZLAST) + 7 * 4
-end
-
 function consume_egs_header(io::IO)
     ZLAST = read_ZLAST(io)
     P = EGSParticle{ZLAST}
-    nphsp = read_(io, Int32)
-    nphotphsp = read_(io, Int32)
-    ekmaxphsp = read_(io, Float32)
-    ekminphspe = read_(io, Float32)
-    nincphsp = read_(io, Float32)
-    EGSHeader{P}(nphsp, nphotphsp, ekmaxphsp, ekminphspe, nincphsp)
+    nphsp      = read(io, Int32)
+    nphotphsp  = read(io, Int32)
+    ekmaxphsp  = read(io, Float32)
+    ekminphsp  = read(io, Float32)
+    nincphsp   = read(io, Float32)
+    EGSHeader{P}(nphsp, nphotphsp, ekmaxphsp, ekminphsp, nincphsp)
 end
+
+ptype(::Type{EGSHeader{P}}) where {P} = P
+
+struct EGSPhspIterator{P <: EGSParticle, I <:IO} <: AbstractPhspIterator
+    io::I
+    header::EGSHeader{P}
+    buffer::Base.RefValue{P}
+    length::Int64
+end
+
+Base.eltype(::Type{<:EGSPhspIterator{P}}) where {P} = P
 
 function egs_iterator(io::IO)
     h = consume_egs_header(io)
     total_size  = bytelength(io)
-    particle_size = ptype_disksize(h)
-    header_size = particle_size
-    body_size = total_size - header_size
-    len = Int64(body_size / particle_size)
+    P = ptype(h)
+    len = Int64(total_size / sizeof(P)) - 1
     @assert len == h.particlecount
-    EGSPhspIterator(io, h, len)
-end
-
-function particle_type_from_latch(latch)::ParticleType
-    latchmask = (1<<30) | (1<<29)
-    latch &= latchmask
-    if latch == latchpattern(photon)
-        photon
-    elseif latch == latchpattern(electron)
-        electron
-    elseif latch == latchpattern(positron)
-        positron
-    else
-        msg = "Unsupported latch pattern $latch"
-        throw(ArgumentError(msg))
-    end
-end
-
-function latchpattern(p::ParticleType)::UInt32
-    if p == photon
-        UInt32(0)
-    elseif p == electron
-        UInt32(1 << 30)
-    elseif p == positron
-        UInt32(1 << 29)
-    else
-        msg = "Unsupported particle type $p"
-        throw(ArgumentError(msg))
-    end
-end
-
-function read_particle(io::IO, h::EGSHeader)
-    latch = read_(io,UInt32)
-    
-    E_tot = read_(io, Float32)
-    new_history = E_tot < 0
-    E_tot = abs(E_tot)
-    
-    x = read_(io, Float32)
-    y = read_(io, Float32)
-    u = read_(io, Float32)
-    v = read_(io, Float32)
-    
-    weight = read_(io, Float32)
-    
-    sign_w = sign(weight)
-    weight = abs(weight)
-    u,v,w = compute_u_v_w(u,v,sign_w)
-
-    ZLAST = zlast_type(h)
-    zlast = read_(io, ZLAST)
-    typ = particle_type_from_latch(latch)
-    E = total2kin(E_tot, typ)
-    EGSParticle(
-        typ::ParticleType,
-        E::Float32,
-        weight::Float32,
-        x::Float32,
-        y::Float32,
-        u::Float32,
-        v::Float32,
-        w::Float32,
-        new_history::Bool,
-        zlast::ZLAST,
-        latch::UInt32,
-   )
+    buffer = Base.RefValue{P}()
+    EGSPhspIterator(io, h, buffer, len)
 end
 
 function Base.iterate(iter::EGSPhspIterator)
     # skip header
-    pos = ptype_disksize(iter.header)
+    pos = sizeof(ptype(iter.header))
     seek(iter.io, pos)
     _iterate(iter)
 end
+
+@inline function _iterate(iter::EGSPhspIterator)
+    if eof(iter.io)
+        nothing
+    else
+        p = read!(iter.io, iter.buffer)[]
+        dummy_state = nothing
+        p, dummy_state
+    end
+end
+
+zlast_type(P::Type{EGSParticle{ZLAST}}) where {ZLAST} = ZLAST
+zlast_type(p::EGSParticle{ZLAST}) where {ZLAST} = ZLAST
+zlast_type(o) = zlast_type(ptype(o))
 
 function write_header(io::IO, h::EGSHeader)
     ZLAST = zlast_type(h)
@@ -225,33 +278,11 @@ function write_header(io::IO, h::EGSHeader)
     ret += write(io, h.max_E_kin)
     ret += write(io, h.min_E_kin_electrons)
     ret += write(io, h.originalcount)
-    while (ret < ptype_disksize(h))
+    psize = sizeof(ptype(h))
+    while (ret < psize)
         ret += write(io, '\0')
     end
-    @assert ret == ptype_disksize(h)
-    ret
-end
-
-function write_particle(io::IO, p::EGSParticle, h::EGSHeader)
-    ret = write_particle(io,p)
-    @assert ret == ptype_disksize(h)
-    ret
-end
-function write_particle(io::IO, p::EGSParticle)
-    sign_E = (-1)^p.new_history
-    sign_weight = sign(p.w)
-    E = sign_E * kin2total(p.E, p.typ)
-    ret = 0
-    ret += write(io, p.latch)
-    ret += write(io, E  )
-    ret += write(io, p.x)
-    ret += write(io, p.y)
-    ret += write(io, p.u)
-    ret += write(io, p.v)
-    ret += write(io, sign_weight * p.weight)
-    if p.zlast != nothing
-        ret += write(io, p.zlast)
-    end
+    @assert ret == psize
     ret
 end
 
@@ -262,13 +293,14 @@ mutable struct EGSWriter{P <: EGSParticle, I <: IO}
     max_E_kin::Float32
     min_E_kin_electrons::Float32
     originalcount::Float32
+    buffer::Base.RefValue{P}
     function EGSWriter{P}(io::I, particlecount, photoncount,
                        max_E_kin, min_E_kin_electrons,
-                       originalcount) where {P,I}
+                       originalcount, buffer) where {P,I}
 
         w = new{P,I}(io, particlecount, photoncount,
                        max_E_kin, min_E_kin_electrons,
-                       originalcount)
+                       originalcount, buffer)
         finalizer(close, w)
         w
     end
@@ -276,14 +308,15 @@ end
 
 function Base.write(w::EGSWriter{P}, p::P) where {P <: EGSParticle}
     w.particlecount += 1
-    if p.typ == photon
+    if isphoton(p)
         w.photoncount += 1
     end
     w.max_E_kin = max(w.max_E_kin, p.E)
-    if p.typ == electron
+    if iselectron(p)
         w.min_E_kin_electrons = min(w.min_E_kin_electrons, p.E)
     end
-    write_particle(w.io, p)
+    w.buffer[] = p
+    write(w.io, w.buffer)
 end
 
 function create_header(w::EGSWriter{P}) where {P}
@@ -309,7 +342,8 @@ function egs_writer(path::AbstractString, P)
 end
 
 function egs_writer(io::IO, ::Type{P}) where {P <: EGSParticle}
-    w = EGSWriter{P}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.))
+    buffer = Base.RefValue{P}()
+    w = EGSWriter{P}(io, Int32(0),Int32(0),Float32(-Inf),Float32(Inf),Float32(1.), buffer)
     h = create_header(w)
     write_header(io, h)
     w

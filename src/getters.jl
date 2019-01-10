@@ -2,7 +2,8 @@ module Getters
 using PhaseSpaceIO: IAEAParticle, EGSParticle
 
 FIELDNAMES = union(Set(fieldnames(IAEAParticle{0,0})),
-               Set(fieldnames(EGSParticle{Float32}))
+               # Set(fieldnames(EGSParticle{Float32}))
+               Set([:latch, :zlast])
               )
 
 for field in FIELDNAMES

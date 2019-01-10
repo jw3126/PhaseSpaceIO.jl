@@ -1,6 +1,6 @@
-struct FastReadIO{I <: IO} <: IO
+struct FastReadIO{I <: IO,T} <: IO
     io::I
-    ref::Base.RefValue{UInt8}
+    ref::Base.RefValue{T}
 end
 
 FastReadIO(io::IO) = FastReadIO(io, Ref(0x00))
@@ -39,6 +39,9 @@ read_(io::IO, ::Type{Nothing}) = nothing
 end
 
 function bytelength(io::IO)
+    # this dose the same as filesize
+    # except that filesize does not work
+    # on IOBuffer
     init_pos = position(io)
     seekstart(io)
     start_pos = position(io)
