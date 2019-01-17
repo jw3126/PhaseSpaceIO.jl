@@ -291,7 +291,13 @@ function get_w(o::EGSParticle)
     u = Float64(get_u(o))
     v = Float64(get_v(o))
     sign_w = sign(getfield(o, :_weight))
-    w64 = sign_w * sqrt(1 - u^2 - v^2)
+    w64_square = 1 - u^2 - v^2
+    w64 = if w64_square < 0
+        @assert isapprox(w64_square,0,atol=100eps(Float32))
+        0.
+    else
+        sign_w * sqrt(1 - u^2 - v^2)
+    end
     Float32(w64)
 end
 
