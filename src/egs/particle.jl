@@ -301,6 +301,18 @@ function get_w(o::EGSParticle)
     Float32(w64)
 end
 
+function particle_type(p::EGSParticle)
+    c = p.latch.charge
+    if c == -1
+        electron
+    elseif c == 0
+        photon
+    else
+        @assert c == 1
+        positron
+    end
+end
+
 isphoton(o::EGSParticle) = o.latch.charge == 0
 iselectron(o::EGSParticle) = o.latch.charge == -1
 ispositron(o::EGSParticle) = o.latch.charge == 1

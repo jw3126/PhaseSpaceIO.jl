@@ -91,4 +91,16 @@ end
     @test 0b00000011100000000000000000001010 === UInt32(l)
 end
 
+@testset "particle_type" begin
+    p = EGSParticle(latch=Latch(multicross=false, charge=0, creation=0, visited=@BitRegions(), brems=false, ), new_history=true, E=0.74988735f0, x=-0.51910776f0, y=0.22886558f0, u=0.26358783f0, v=-0.9477993f0, w=-0.17943771f0, weight=4.7387686f0, zlast=nothing, )
+    @test particle_type(p) === photon
+    @test isphoton(p)
+    @set! p.latch.charge = -1
+    @test iselectron(p)
+    @test particle_type(p) === electron
+    @set! p.latch.charge = 1
+    @test particle_type(p) === positron
+    @test ispositron(p)
+end
+
 end #module

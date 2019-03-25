@@ -1,3 +1,5 @@
+export particle_type
+
 const EXT_HEADER = ".IAEAheader"
 const EXT_PHSP   = ".IAEAphsp"
 struct IAEAPath
@@ -57,6 +59,8 @@ function IAEAParticle(;typ,E,weight=1,x,y,z,
                      new_history,
                      extra_floats, extra_ints)
 end
+
+particle_type(p::IAEAParticle) = p.typ
 
 function Base.show(io::IO, p::IAEAParticle)
     print(io, "IAEAParticle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
