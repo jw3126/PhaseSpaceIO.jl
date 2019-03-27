@@ -1,3 +1,5 @@
+using StaticArrays: @SVector
+using Setfield: setproperties
 export phsp_iterator
 export iaea_iterator
 export iaea_writer
@@ -6,6 +8,8 @@ export egs_writer
 export egs_write
 export iaea_write
 export phsp_write
+export set_position
+export direction, set_direction
 
 function iaea_writer end
 
@@ -78,4 +82,32 @@ function phsp_write(path, ps)
         msg = "Cannot guess format from eltype(ps) = $P."
         throw(ArgumentError(msg))
     end
+end
+
+function direction(p)
+    @SVector [p.u, p.v, p.w]
+end
+function Base.position(p::EGSParticle; z=nothing)
+    if z === nothing
+        @SVector[p.x, p.y]
+    else
+        @SVector[p.x, p.y, z]
+    end
+end
+function Base.position(p::IAEAParticle)
+    @SVector[p.x, p.y, p.z]
+end
+
+function set_direction(p, dir)
+    u,v,w = dir
+    setproperties(p, (u=u,v=v,w=w))
+end
+
+function set_position(p::IAEAParticle, pos)
+    x,y,z = pos
+    setproperties(p, (x=x,y=y,z=z))
+end
+function set_position(p::EGSParticle, pos)
+    x,y = pos
+    setproperties(p, (x=x,y=y))
 end
