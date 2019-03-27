@@ -4,4 +4,4 @@ DataStructures
 StatsBase
 JSON
 Setfield
-StaticArrays
+Requires
