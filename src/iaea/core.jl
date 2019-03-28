@@ -77,19 +77,19 @@ function Base.isapprox(p1::IAEAParticle, p2::IAEAParticle;kw...)
     isapprox([p1.u, p1.v, p1.w], [p2.u, p2.v, p2.w]; kw...)
 end
 
-struct RecordContents{Nf, Ni, NT<:NamedTuple}
-    data::NT
+struct IAEAHeader{Nf, Ni, NT<:NamedTuple}
+    record_contents::NT
 end
 
-function RecordContents{Nf, Ni}(;
+function IAEAHeader{Nf, Ni}(;
                         kw...
                        ) where {Nf, Ni}
     for (keyword,val) in kw
         @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
     end
-    data = map(Float32, (;kw...))
-    NT = typeof(data)
-    RecordContents{Nf, Ni,NT}(data)
+    rc = map(Float32, (;kw...))
+    NT = typeof(rc)
+    IAEAHeader{Nf, Ni,NT}(rc)
 end
 
 struct IAEAPhspIterator{H,I<:IO} <: AbstractPhspIterator
@@ -98,7 +98,7 @@ struct IAEAPhspIterator{H,I<:IO} <: AbstractPhspIterator
     length::Int64
 end
 
-function IAEAPhspIterator(io::IO,h::RecordContents)
+function IAEAPhspIterator(io::IO,h::IAEAHeader)
     H = typeof(h)
     I = typeof(io)
     bl = bytelength(io)

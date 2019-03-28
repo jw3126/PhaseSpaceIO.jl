@@ -1,4 +1,4 @@
-export IAEAParticle, RecordContents
+export IAEAParticle, IAEAHeader
 export IAEAPath
 
 include("core.jl")

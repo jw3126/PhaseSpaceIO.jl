@@ -1,4 +1,4 @@
-function ptype_disksize_nodefaults(h::RecordContents{Nf, Ni}) where {Nf, Ni}
+function ptype_disksize_nodefaults(h::IAEAHeader{Nf, Ni}) where {Nf, Ni}
     1 + # typ
     4 + # energy
     12 + # x,y,z
@@ -8,16 +8,16 @@ function ptype_disksize_nodefaults(h::RecordContents{Nf, Ni}) where {Nf, Ni}
     4 * Ni
 end
 
-function ptype_disksize(h::RecordContents{Nf, Ni}) where {Nf, Ni}
-    size_reduction_due_to_defaults = sizeof(h.data)
+function ptype_disksize(h::IAEAHeader{Nf, Ni}) where {Nf, Ni}
+    size_reduction_due_to_defaults = sizeof(h.record_contents)
     ptype_disksize_nodefaults(h) - size_reduction_due_to_defaults
 end
 
 @generated function read_default(io::IO,
                              ::Val{field},
-                             h::RecordContents{Nf,Ni,NT}) where {field,Nf,Ni,NT}
+                             h::IAEAHeader{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
-        :(h.data.$field)
+        :(h.record_contents.$field)
     else
         :(read_(io, Float32))
     end
@@ -26,17 +26,17 @@ end
 @generated function write_default(io::IO,
                              ::Val{field},
                              p::IAEAParticle,
-                             h::RecordContents{Nf,Ni,NT}) where {field,Nf,Ni,NT}
+                             h::IAEAHeader{Nf,Ni,NT}) where {field,Nf,Ni,NT}
     if field in fieldnames(NT)
         quote
-            @assert p.$field == h.data.$field
+            @assert p.$field == h.record_contents.$field
             0
         end
     else
         :(write(io, p.$field))
     end
 end
-@noinline function read_particle(io::IO, h::RecordContents{Nf, Ni}) where {Nf, Ni}
+@noinline function read_particle(io::IO, h::IAEAHeader{Nf, Ni}) where {Nf, Ni}
 
     P = ptype(h)
     typ8 = read_(io, Int8)
@@ -67,7 +67,7 @@ end
 
 @noinline function write_particle(io::IO,
                                   p::IAEAParticle{Nf, Ni},
-                                  h::RecordContents{Nf, Ni}) where {Nf, Ni}
+                                  h::IAEAHeader{Nf, Ni}) where {Nf, Ni}
     typ8 = Int8(p.typ)
     sign_typ8 = Int8(-1)^(p.w < 0)
     typ8 = sign_typ8 * typ8
@@ -90,4 +90,4 @@ end
     ret
 end
 
-ptype(h::Type{RecordContents{Nf, Ni, NT}}) where {Nf, Ni, NT} = IAEAParticle{Nf, Ni}
+ptype(h::Type{IAEAHeader{Nf, Ni, NT}}) where {Nf, Ni, NT} = IAEAParticle{Nf, Ni}

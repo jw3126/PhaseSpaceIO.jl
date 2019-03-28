@@ -154,15 +154,15 @@ function print_header(io::IO, w::IAEAPhspWriter)
     println_kv(io, :STATISTICAL_INFORMATION_GEOMETRY, stats)
 end
 
-function extra_float_count(r::RecordContents{Nf, Ni, Nt}) where {Nf, Ni, Nt}
+function extra_float_count(r::IAEAHeader{Nf, Ni, Nt}) where {Nf, Ni, Nt}
     Nf
 end
 
-function extra_long_count(r::RecordContents{Nf, Ni, Nt}) where {Nf, Ni, Nt}
+function extra_long_count(r::IAEAHeader{Nf, Ni, Nt}) where {Nf, Ni, Nt}
     Ni
 end
 
-function print_record_contents(io::IO, r::RecordContents)
+function print_record_contents(io::IO, r::IAEAHeader)
     # $RECORD_CONTENTS:
     # 1     // X is stored ?
     # 1     // Y is stored ?
@@ -179,7 +179,7 @@ function print_record_contents(io::IO, r::RecordContents)
     # 
     # $RECORD_LENGTH:
     # 33
-    t = r.data
+    t = r.record_contents
 
     print_key(io, "RECORD_CONTENTS")
     record_constants = Float32[]
@@ -207,7 +207,7 @@ function print_record_contents(io::IO, r::RecordContents)
     println(io)
 end
 
-function iaea_writer(path::IAEAPath, r::RecordContents)
+function iaea_writer(path::IAEAPath, r::IAEAHeader)
     io_header = open(path.header, "w") 
     io_phsp   = open(path.phsp  , "w")
     ga = GeneratedAttributes()
@@ -229,7 +229,7 @@ function Base.close(w::IAEAPhspWriter)
     close(w.io_phsp)
 end
 
-function iaea_writer(f, path, r::RecordContents)
+function iaea_writer(f, path, r::IAEAHeader)
     w = iaea_writer(IAEAPath(path), r)
     ret = call_fenced(f, w)
     close(w)
