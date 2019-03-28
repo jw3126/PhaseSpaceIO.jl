@@ -46,12 +46,12 @@ for xxx_iterator in [:egs_iterator, :iaea_iterator, :phsp_iterator]
     end
 end
 
-function _record_content_like(P::Type{IAEAParticle{Nf, Ni}}) where {Nf, Ni}
+function _iaea_header_like(P::Type{IAEAParticle{Nf, Ni}}) where {Nf, Ni}
     r = IAEAHeader{Nf, Ni}()
 end
 
 function iaea_write(path, ps)
-    r = _record_content_like(eltype(ps))
+    r = _iaea_header_like(eltype(ps))
     iaea_writer(path,r) do w
         for p in ps
             write(w, p)
