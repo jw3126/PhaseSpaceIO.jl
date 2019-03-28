@@ -91,20 +91,23 @@ function IAEAHeader(d::AbstractDict)
         end
     end
 
-    d = OrderedDict()
-    add_next_default!(d,:x,contents, constants)
-    add_next_default!(d,:y,contents, constants)
-    add_next_default!(d,:z,contents, constants)
-    add_next_default!(d,:u,contents, constants)
-    add_next_default!(d,:v,contents, constants)
-    add_next_default!(d,:w,contents, constants)
-    @assert !haskey(d, :w)
-    add_next_default!(d, :weight, contents, constants)
+    rcd = OrderedDict()
+    add_next_default!(rcd,:x,contents, constants)
+    add_next_default!(rcd,:y,contents, constants)
+    add_next_default!(rcd,:z,contents, constants)
+    add_next_default!(rcd,:u,contents, constants)
+    add_next_default!(rcd,:v,contents, constants)
+    add_next_default!(rcd,:w,contents, constants)
+    @assert !haskey(rcd, :w)
+    add_next_default!(rcd, :weight, contents, constants)
     Nf = read_next!(Int, contents)
     Ni = read_next!(Int, contents)
     @assert isempty(constants)
-    rc = (;d...)
+    rc = (;rcd...)
+    raw = OrderedDict{Symbol, String}(
+        (k=>chomp(v)) for (k,v) in pairs(d) if 
+        !(k in [:RECORD_CONSTANT, :RECORD_CONSTANT]))
 
-    NT = typeof(rc)
-    IAEAHeader{Nf, Ni,NT}(rc)
+    # NT = typeof(rc)
+    IAEAHeader{Nf, Ni}(rc, raw)
 end

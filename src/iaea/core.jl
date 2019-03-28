@@ -79,17 +79,18 @@ end
 
 struct IAEAHeader{Nf, Ni, NT<:NamedTuple}
     record_contents::NT
-end
+    attributes::OrderedDict{Symbol, String}
+    function IAEAHeader{Nf, Ni}(
+            rc::NamedTuple=NamedTuple(),
+            raw=OrderedDict{Symbol,String}()) where {Nf, Ni}
 
-function IAEAHeader{Nf, Ni}(;
-                        kw...
-                       ) where {Nf, Ni}
-    for (keyword,val) in kw
-        @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
+        for (keyword,val) in pairs(rc)
+            @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
+        end
+        rc32 = map(Float32, rc)
+        NT = typeof(rc32)
+        new{Nf, Ni,NT}(rc32, raw)
     end
-    rc = map(Float32, (;kw...))
-    NT = typeof(rc)
-    IAEAHeader{Nf, Ni,NT}(rc)
 end
 
 struct IAEAPhspIterator{H,I<:IO} <: AbstractPhspIterator
