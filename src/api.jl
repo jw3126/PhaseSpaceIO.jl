@@ -14,7 +14,7 @@ iaea_iterator(path) = iaea_iterator(IAEAPath(path))
 function iaea_iterator(path::IAEAPath)
     @argcheck ispath(path.header)
     @argcheck ispath(path.phsp)
-    h = load(path.header, RecordContents)
+    h = load(path.header, IAEAHeader)
     io = FastReadIO(open(path.phsp))
     IAEAPhspIterator(io,h)
 end
@@ -47,7 +47,7 @@ for xxx_iterator in [:egs_iterator, :iaea_iterator, :phsp_iterator]
 end
 
 function _record_content_like(P::Type{IAEAParticle{Nf, Ni}}) where {Nf, Ni}
-    r = RecordContents{Nf, Ni}()
+    r = IAEAHeader{Nf, Ni}()
 end
 
 function iaea_write(path, ps)

@@ -1,4 +1,4 @@
-function load(io::IO, ::Type{RecordContents})
+function load(io::IO, ::Type{IAEAHeader})
     read_header(io)
 end
 
@@ -72,10 +72,10 @@ end
 
 function read_header(io::IO)
     d = read_header_dict(io)
-    RecordContents(d)
+    IAEAHeader(d)
 end
 
-function RecordContents(d::AbstractDict)
+function IAEAHeader(d::AbstractDict)
 
     contents  = cleanup_record(d[:RECORD_CONTENTS])
     constants = cleanup_record(d[:RECORD_CONSTANT])
@@ -103,8 +103,8 @@ function RecordContents(d::AbstractDict)
     Nf = read_next!(Int, contents)
     Ni = read_next!(Int, contents)
     @assert isempty(constants)
-    data = (;d...)
+    rc = (;d...)
 
-    NT = typeof(data)
-    RecordContents{Nf, Ni,NT}(data)
+    NT = typeof(rc)
+    IAEAHeader{Nf, Ni,NT}(rc)
 end

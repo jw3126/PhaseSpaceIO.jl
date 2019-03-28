@@ -6,7 +6,7 @@ using Setfield
 using PhaseSpaceIO: ptype, read_particle, write_particle
 
 @testset "IAEA save load with many consants" begin
-    r = RecordContents{0,0}(x=1, y=2, z=3, u=0, v=1, weight=5)
+    r = IAEAHeader{0,0}(x=1, y=2, z=3, u=0, v=1, weight=5)
     p_truth = IAEAParticle(x=1,y=2,z=3,u=0,v=1,w=0,weight=5, typ=photon, E=6)
     path = IAEAPath(tempname())
     iaea_writer(path, r) do w
@@ -31,7 +31,7 @@ end
     end
     path = IAEAPath(tempname())
     ps = [arbitrary(IAEAParticle{0,1})]
-    r = RecordContents{0,1}()
+    r = IAEAHeader{0,1}()
     write_sloppy(path, ps, r)
     GC.gc()
     ps2 = phsp_iterator(collect, path)
@@ -41,7 +41,7 @@ end
 end
 
 @testset "read write single particle" begin
-    h = RecordContents{0,1}()
+    h = IAEAHeader{0,1}()
     P = ptype(h)
     @test P == IAEAParticle{0,1}
     p_ref = P(photon, 
@@ -111,7 +111,7 @@ end
         i = rand(1:3)
         n = rand(1:1000)
         ps = [arbitrary(IAEAParticle{f,i}) for _ in 1:n]
-        r = RecordContents{f,i}()
+        r = IAEAHeader{f,i}()
         dir = tempname()
         mkpath(dir)
         path = IAEAPath(joinpath(dir, "hello"))
