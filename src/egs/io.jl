@@ -45,7 +45,9 @@ function egs_iterator(io::IO)
     total_size  = bytelength(io)
     P = ptype(h)
     len = Int64(total_size / sizeof(P)) - 1
-    @assert len == h.particlecount
+    if len != h.particlecount
+        @warn "Particle count according to the header is $(h.particlecount), while there are actually $(len) particles stored in the file."
+    end
     buffer = Base.RefValue{P}()
     EGSPhspIterator(io, h, buffer, len)
 end
