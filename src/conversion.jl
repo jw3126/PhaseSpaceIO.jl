@@ -48,7 +48,8 @@ function phsp_convert(src::AbstractString, dst::IAEAPath;  z)
 end
 
 function phsp_convert(iter, dst::IAEAPath; z)
-    header = IAEAHeader{0,0}()
+    nt = (z=z,)
+    header = IAEAHeader{0,0}(nt)
     iaea_writer(dst, header) do w
         for p in iter
             write(w, to_iaea(p, z=z))
