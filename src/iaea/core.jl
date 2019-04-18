@@ -42,7 +42,8 @@ function IAEAParticle(typ, E, weight,
                           x,y,z, 
                           u,v,w, 
                           new_history, 
-                          extra_floats::NTuple{Nf,Float32}, extra_ints::NTuple{Ni,Int32}) where {Nf, Ni}
+                          extra_floats::NTuple{Nf,Float32},
+                          extra_ints::NTuple{Ni,Int32}) where {Nf, Ni}
 
     IAEAParticle{Nf, Ni}(typ, E, weight,
                      x,y,z, u,v,w,
@@ -53,7 +54,9 @@ end
 function IAEAParticle(;typ,E,weight=1,x,y,z,
                   u,v,w,
                   new_history=true,
-                  extra_floats=(),extra_ints=())
+                  extra_floats=(),
+                  extra_ints=()
+                 )
     IAEAParticle(typ, E, weight,
                      x,y,z, u,v,w,
                      new_history,

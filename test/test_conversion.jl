@@ -30,6 +30,13 @@ using Setfield
         p_iaea_bad = @set p_iaea.typ = rand([proton, neutron])
         @test_throws ArgumentError to_egs(p_iaea_bad)
     end
+
+    # latch and ZLAST
+    p_egs = arbitrary(EGSParticle{Float32})
+    p_iaea = to_iaea(p_egs, z=0)
+    @test p_iaea.extra_floats === (p_egs.zlast,)
+    ilatch = Int32(UInt32(p_egs.latch))
+    @test p_iaea.extra_ints === (ilatch, )
 end
 
 @testset "phsp_convert" begin
@@ -47,4 +54,5 @@ end
 
     @test ps_iaea == ps_iaea2
 end
+
 end#module

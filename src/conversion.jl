@@ -1,6 +1,20 @@
 using Setfield
 using ArgCheck
 
+function compute_extra_ints(p::EGSParticle)::NTuple{1, Int32}
+    ulatch = UInt32(p.latch)
+    ilatch = Int32(ulatch)
+    (ilatch,)
+end
+
+function compute_extra_floats(p::EGSParticle{Nothing})::NTuple{0, Float32}
+    ()
+end
+
+function compute_extra_floats(p::EGSParticle{Float32})::NTuple{1, Float32}
+    (p.zlast,)
+end
+
 function to_iaea(p::EGSParticle; z)
     IAEAParticle(
         typ = particle_type(p),
@@ -13,6 +27,8 @@ function to_iaea(p::EGSParticle; z)
         E=p.E,
         new_history=p.new_history,
         weight=p.weight,
+        extra_floats=compute_extra_floats(p),
+        extra_ints=compute_extra_ints(p),
     )
 end
 
@@ -47,9 +63,12 @@ function phsp_convert(src::AbstractString, dst::IAEAPath;  z)
     end
 end
 
-function phsp_convert(iter, dst::IAEAPath; z)
+@noinline function phsp_convert(iter, dst::IAEAPath; z)
     nt = (z=z,)
-    header = IAEAHeader{0,0}(nt)
+    _Nf(::Type{EGSParticle{Nothing}}) = 0
+    _Nf(::Type{EGSParticle{Float32}}) = 1
+    Nf = _Nf(eltype(iter))
+    header = IAEAHeader{1,Nf}(nt)
     iaea_writer(dst, header) do w
         for p in iter
             write(w, to_iaea(p, z=z))
