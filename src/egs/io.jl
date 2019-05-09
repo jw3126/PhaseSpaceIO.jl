@@ -44,28 +44,30 @@ function egs_iterator(io::IO)
     h = consume_egs_header(io)
     total_size  = bytelength(io)
     P = ptype(h)
-    len = Int64(total_size / sizeof(P)) - 1
+    float_len = (total_size / sizeof(P)) - 1
+    len = floor(Int64, float_len)
+    if float_len != len
+        @warn "File size indicates $(float_len) particles, which is not an integer. Assuming $(len) particles instead."
+    end
     if len != h.particlecount
-        @warn "Particle count according to the header is $(h.particlecount), while there are actually $(len) particles stored in the file."
+        @warn "Particle count according to the header is $(h.particlecount), while there are actually $(float_len) particles stored in the file."
     end
     buffer = Base.RefValue{P}()
     EGSPhspIterator(io, h, buffer, len)
 end
 
-function Base.iterate(iter::EGSPhspIterator)
+function Base.iterate(iter::EGSPhspIterator, nread=0)
     # skip header
-    pos = sizeof(ptype(iter.header))
-    seek(iter.io, pos)
-    _iterate(iter)
-end
-
-@inline function _iterate(iter::EGSPhspIterator)
-    if eof(iter.io)
-        nothing
+    if nread == 0
+        pos = sizeof(ptype(iter.header))
+        seek(iter.io, pos)
+    end
+    if nread == length(iter)
+        return nothing
     else
         p = read!(iter.io, iter.buffer)[]
-        dummy_state = nothing
-        p, dummy_state
+        nread += 1
+        p, nread
     end
 end
 
