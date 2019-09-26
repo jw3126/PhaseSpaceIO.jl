@@ -3,7 +3,7 @@ using StaticArrays
 using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
-using PhaseSpaceIO: to_egs, to_iaea, phsp_convert
+using PhaseSpaceIO: to_egs, to_iaea, phsp_convert, position
 using Setfield
 
 @testset "to_egs, to_iaea" begin

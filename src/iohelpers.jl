@@ -7,7 +7,7 @@ FastReadIO(io::IO) = FastReadIO(io, Ref(0x00))
 FastReadIO(o::FastReadIO) = o
 
 for f in [:seekstart, :seekend, :position, :eof, :close]
-    @eval Base.$f(o::FastReadIO) = $f(o.io)
+    @eval Base.$f(o::FastReadIO) = Base.$f(o.io)
 end
 Base.seek(o::FastReadIO, pos) = seek(o.io, pos)
 
@@ -42,11 +42,11 @@ function bytelength(io::IO)
     # this dose the same as filesize
     # except that filesize does not work
     # on IOBuffer
-    init_pos = position(io)
+    init_pos = Base.position(io)
     seekstart(io)
-    start_pos = position(io)
+    start_pos = Base.position(io)
     seekend(io)
-    end_pos = position(io)
+    end_pos = Base.position(io)
     seek(io, init_pos)
     end_pos - start_pos
 end

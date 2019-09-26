@@ -1,13 +1,20 @@
+import Setfield
 using StaticArrays: @SVector, normalize
 using Setfield: setproperties
-export set_position
-export direction, set_direction
+export position
+export direction
+
+function position end
+function direction end
+
+Setfield.set(o, ::typeof(@lens position(_)), val) = set_position(o, val)
+Setfield.set(o, ::typeof(@lens direction(_)), val) = set_direction(o, val)
 
 function direction(p)
     @SVector [p.u, p.v, p.w]
 end
 
-function Base.position(p::EGSParticle; z=nothing)
+function position(p::EGSParticle; z=nothing)
     if z === nothing
         @SVector[p.x, p.y]
     else
@@ -15,7 +22,7 @@ function Base.position(p::EGSParticle; z=nothing)
     end
 end
 
-function Base.position(p::IAEAParticle)
+function position(p::IAEAParticle)
     @SVector[p.x, p.y, p.z]
 end
 

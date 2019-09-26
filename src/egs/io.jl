@@ -165,7 +165,7 @@ end
 function Base.flush(w::EGSWriter)
     if isopen(w.io)
         h = create_header(w)
-        pos = position(w.io)
+        pos = Base.position(w.io)
         seekstart(w.io)
         write_header(w.io, h)
         seek(w.io, pos)
