@@ -142,6 +142,34 @@ function create_header(w::EGSWriter{P}) where {P}
    )
 end
 
+
+"""
+    egs_writer(f, path, P::Type{<:EGSParticle})
+
+Write particles in EGS format to `path`:
+```jldoctest
+julia> using PhaseSpaceIO
+
+julia> p = EGSParticle(
+           E=1.0, weight=5.2134085,
+           x=2.0, y=-3.0,
+           u=0.99884456, v=-0.03811472, w=0.029271236,
+           new_history=false, zlast=0.23947382f0, latch=Latch(charge=0));
+
+julia> path = tempname() * ".egsphsp1";
+
+julia> egs_writer(path, typeof(p)) do w
+           write(w, p)
+       end
+32
+
+julia> phsp_iterator(collect, path)
+1-element Array{EGSParticle{Float32},1}:
+ EGSParticle(latch=Latch(multicross=false, charge=0, creation=0, visited=@BitRegions(), brems=fals
+e, ), new_history=false, E=1.0f0, x=2.0f0, y=-3.0f0, u=0.99884456f0, v=-0.03811472f0, w=0.02927123
+6f0, weight=5.2134085f0, zlast=0.23947382f0, )
+```
+"""
 function egs_writer(f, path, P)
     w = egs_writer(path, P)
     ret = call_fenced(f,w)

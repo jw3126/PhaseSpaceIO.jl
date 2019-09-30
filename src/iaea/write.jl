@@ -229,6 +229,30 @@ function Base.close(w::IAEAPhspWriter)
     close(w.io_phsp)
 end
 
+
+"""
+    iaea_writer(f, path, r::IAEAHeader)
+
+Write particles in IAEA format to `path`:
+```jldoctest
+julia> using PhaseSpaceIO
+
+julia> h = IAEAHeader{0,0}();
+
+julia> path = IAEAPath(tempname());
+
+julia> iaea_writer(path, h) do w
+           p = IAEAParticle(x=1,y=2,z=3,u=0,v=1,w=0,weight=5, typ=photon, E=6);
+           write(w, p)
+       end
+29
+
+julia> phsp_iterator(collect, path)
+1-element Array{IAEAParticle{0,0},1}:
+ IAEAParticle(typ=photon, E=6.0, weight=5.0, x=1.0, y=2.0, z=3.0, u=0.0, v=1.0, w=0.0, new_history
+=true, extra_floats=(), extra_ints=())
+```
+"""
 function iaea_writer(f, path, r::IAEAHeader)
     w = iaea_writer(IAEAPath(path), r)
     ret = call_fenced(f, w)
