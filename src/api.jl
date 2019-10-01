@@ -46,6 +46,16 @@ for xxx_iterator in [:egs_iterator, :iaea_iterator, :phsp_iterator]
     end
 end
 
+function header_type(::Type{IAEAParticle{Nf, Ni}}) where {Nf, Ni}
+    IAEAHeader{Nf, Ni}
+end
+
+function similar_header(ps, args...)
+    P = eltype(ps)
+    H = header_type(P, args...)
+    H()
+end
+
 function _iaea_header_like(P::Type{IAEAParticle{Nf, Ni}}) where {Nf, Ni}
     r = IAEAHeader{Nf, Ni}()
 end

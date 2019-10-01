@@ -22,6 +22,15 @@ using PhaseSpaceIO: ptype, read_particle, write_particle
     rm(path)
 end
 
+@testset "similar_header" begin
+    path = assetpath("some_file.IAEAphsp")
+    h = phsp_iterator(PhaseSpaceIO.similar_header, path)
+    @test typeof(h) == typeof(IAEAHeader{0,1}())
+    ps = phsp_iterator(collect, path)
+    h  = PhaseSpaceIO.similar_header(ps)
+    @test typeof(h) == typeof(IAEAHeader{0,1}())
+end
+
 @testset "finalizer" begin
     function write_sloppy(path, ps, r)
         w = iaea_writer(path, r)
