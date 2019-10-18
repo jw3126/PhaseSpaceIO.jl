@@ -90,15 +90,15 @@ function show_iaea_particle(io::IO, calle::AbstractString, p)
 end
 Base.show(io::IO, p::IAEAParticle) = show_iaea_particle(io, "IAEAParticle", p)
 
-function Base.isapprox(p1::IAEAParticle, p2::IAEAParticle;kw...)
+function Base.isapprox(p1::AbstractIAEAParticle, p2::AbstractIAEAParticle;kw...)
     p1.typ == p2.typ  &&
     p1.new_history   == p2.new_history    &&
     p1.extra_floats  == p2.extra_floats   &&
     p1.extra_ints    == p2.extra_ints     &&
     isapprox(p1.E,      p2.E;      kw...) &&
     isapprox(p1.weight, p2.weight; kw...) &&
-    isapprox([p1.x, p1.y, p1.z], [p2.x, p2.y, p2.z]; kw...) &&
-    isapprox([p1.u, p1.v, p1.w], [p2.u, p2.v, p2.w]; kw...)
+    isapprox(position(p1), position(p2); kw...) &&
+    isapprox(direction(p1), direction(p2); kw...)
 end
 
 struct IAEAHeader{Nf, Ni, NT<:NamedTuple}

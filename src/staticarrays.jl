@@ -22,7 +22,7 @@ function position(p::EGSParticle; z=nothing)
     end
 end
 
-function position(p::IAEAParticle)
+function position(p::AbstractIAEAParticle)
     @SVector[p.x, p.y, p.z]
 end
 

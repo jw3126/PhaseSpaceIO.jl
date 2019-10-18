@@ -130,9 +130,7 @@ end
 @generated function _get_typ_field(p::CompressedIAEAParticle{H}, ::Type{T}, ::Val{field}) where {H,T, field}
     rc = get_record_constants(H)
     if haskey(rc, field)
-        quote
-            rc[field]::T
-        end
+        rc[field]::T
     else
         quote
             offset = field_offset($(H()), $(Val(field)))
