@@ -23,7 +23,7 @@ function Base.rm(path::IAEAPath;kw...)
     rm(path.phsp;kw...)
 end
 
-struct IAEAParticle{Nf, Ni}
+struct IAEAParticle{Nf, Ni} <: AbstractIAEAParticle
     typ::ParticleType
     E::Float32
     weight::Float32
@@ -36,6 +36,26 @@ struct IAEAParticle{Nf, Ni}
     new_history::Bool
     extra_floats::NTuple{Nf, Float32}
     extra_ints::NTuple{Ni, Int32}
+end
+
+function equal_properties(p1::AbstractIAEAParticle, p2::AbstractIAEAParticle)
+    p1.typ    == p2.typ || return false
+    p1.E      == p2.E || return false
+    p1.weight == p2.weight || return false
+    p1.x      == p2.x || return false
+    p1.y      == p2.y || return false
+    p1.z      == p2.z || return false
+    p1.u      == p2.u || return false
+    p1.v      == p2.v || return false
+    p1.w      == p2.w || return false
+    p1.new_history  == p2.new_history || return false
+    p1.extra_floats == p2.extra_floats || return false
+    p1.extra_ints   == p2.extra_ints || return false
+    return true
+end
+
+function Base.:(==)(p1::AbstractIAEAParticle, p2::AbstractIAEAParticle)
+    equal_properties(p1, p2)
 end
 
 function IAEAParticle(typ, E, weight, 
@@ -65,9 +85,10 @@ end
 
 particle_type(p::IAEAParticle) = p.typ
 
-function Base.show(io::IO, p::IAEAParticle)
-    print(io, "IAEAParticle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
+function show_iaea_particle(io::IO, calle::AbstractString, p)
+    print(io, "$calle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
 end
+Base.show(io::IO, p::IAEAParticle) = show_iaea_particle(io, "IAEAParticle", p)
 
 function Base.isapprox(p1::IAEAParticle, p2::IAEAParticle;kw...)
     p1.typ == p2.typ  &&

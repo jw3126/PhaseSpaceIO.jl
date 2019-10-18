@@ -3,4 +3,3 @@ export @BitRegions
 
 include("particle.jl")
 include("io.jl")
-include("mmap.jl")

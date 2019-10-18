@@ -88,7 +88,7 @@ function Base.getproperty(o::Latch, s::Symbol)
     end
 end
 
-function Setfield.setproperties(o::Latch, props)
+function Setfield.setproperties(o::Latch, props::NamedTuple)
     Latch(;
         multicross=get(props, :multicross, o.multicross),
         charge=get(props, :charge, o.charge),
@@ -181,6 +181,8 @@ struct EGSParticle{ZLAST <: Union{Nothing,Float32}}
     _zlast::ZLAST
 end
 
+Format(p::EGSParticle) = FormatEGS()
+
 # TODO HACKY
 Base.isapprox(p1::EGSParticle, p2::EGSParticle) = p1 === p2
 
@@ -188,7 +190,7 @@ function Base.propertynames(o::EGSParticle)
     (:latch, :new_history, :E, :x, :y, :u, :v, :w, :weight, :zlast)
 end
 
-function Setfield.setproperties(o::EGSParticle, props)
+function Setfield.setproperties(o::EGSParticle, props::NamedTuple)
     EGSParticle(
         get(props, :latch, o.latch),
         get(props, :new_history, o.new_history),

@@ -7,6 +7,19 @@ export egs_write
 export iaea_write
 export phsp_write
 
+
+function guess_format_from_path(path::AbstractString)
+    stem, ext = splitext(path)
+    if startswith(ext, ".IAEA")
+        return FormatIAEA()
+    elseif startswith(ext, ".egsphsp")
+        return FormatEGS()
+    else
+        msg = "Cannot guess format from file extension for $path."
+        throw(ArgumentError(msg))
+    end
+end
+
 function iaea_writer end
 
 iaea_iterator(path) = iaea_iterator(IAEAPath(path))
@@ -26,16 +39,11 @@ end
 
 phsp_iterator(path::IAEAPath) = iaea_iterator(path)
 function phsp_iterator(path::AbstractString)
-    stem, ext = splitext(path)
-    if startswith(ext, ".IAEA")
-        iaea_iterator(path)
-    elseif startswith(ext, ".egsphsp")
-        egs_iterator(path)
-    else
-        msg = "Cannot guess format from file extension for $path."
-        throw(ArgumentError(msg))
-    end
+    fmt = guess_format_from_path(path)
+    phsp_iterator(path, fmt)
 end
+phsp_iterator(path::AbstractString, ::FormatEGS)  = egs_iterator(path)
+phsp_iterator(path::AbstractString, ::FormatIAEA) = iaea_iterator(path)
 
 for xxx_iterator in [:egs_iterator, :iaea_iterator, :phsp_iterator]
     @eval function $(xxx_iterator)(f, path)

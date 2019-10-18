@@ -61,3 +61,27 @@ function setbit(x::Integer, val::Bool, i)
     mask = (T(-newbit) ⊻ x) & (T(1) << i)
     x ⊻ mask
 end
+
+function unsafe_getbyoffset(::Type{T}, s::S, offset::Int) where {T, S}
+    rt = Ref{T}()
+    rs = Ref{S}(s)
+    GC.@preserve rt rs begin
+        pt = Ptr{UInt8}(Base.unsafe_convert(Ref{T}, rt))
+        ps = Ptr{UInt8}(Base.unsafe_convert(Ref{S}, rs)) + offset
+        Base._memcpy!(pt, ps, sizeof(T))
+    end
+    return rt[] 
+end
+
+function check_getbyoffset(T, s, offset)
+    S = typeof(s)
+    isbitstype(T) || throw(ArgumentError("Can only cast into bitstype."))
+    isbitstype(S) || throw(ArgumentError("Can only cast from bitstype."))
+    @assert offset >= 0
+    sizeof(T) + offset <= sizeof(S) || throw(ArgumentError("Can only cast between types of equal size."))
+end
+
+function getbyoffset(T, s, offset)
+    @boundscheck check_getbyoffset(T, s, offset)
+    unsafe_getbyoffset(T, s, offset)
+end

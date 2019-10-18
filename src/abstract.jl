@@ -1,6 +1,12 @@
 abstract type AbstractPhspIterator end
-# abstract type AbstractParticle end
+abstract type AbstractParticle end
+abstract type AbstractIAEAParticle end
 
+abstract type Format end
+struct FormatEGS <: Format end
+struct FormatIAEA <: Format end
+
+Format(p::AbstractIAEAParticle) = FormatIAEA()
 Base.length(iter::AbstractPhspIterator) = iter.length
 
 function Base.iterate(iter::AbstractPhspIterator)

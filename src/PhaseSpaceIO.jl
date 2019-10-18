@@ -18,5 +18,6 @@ include("conversion.jl")
 
 include("staticarrays.jl")
 include("transforms.jl")
+include("mmap.jl")
 
 end#module

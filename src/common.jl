@@ -15,10 +15,10 @@ function load(path::AbstractString, T)
     end
 end
 
-function compute_u_v_w(u, v, sign_w)
+function compute_u_v_w(u::Float32, v::Float32, sign_w::Float32)
     tmp = Float64(u)^2 + Float64(v)^2
     if tmp <= 1
-        w = sign_w * Float32(√(1 - tmp))
+        w = Float32(sign_w) * Float32(√(1 - tmp))
     else
         w = Float32(0)
         tmp = √(tmp)

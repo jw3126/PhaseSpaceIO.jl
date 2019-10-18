@@ -29,30 +29,6 @@ function StaticIAEAHeader(record_constants::NamedTuple, Nf::Int, Ni::Int)
     StaticIAEAHeader{record_constants, Nf, Ni}
 end
 
-function unsafe_getbyoffset(::Type{T}, s::S, offset::Int) where {T, S}
-    rt = Ref{T}()
-    rs = Ref{S}(s)
-    GC.@preserve rt rs begin
-        pt = Ptr{UInt8}(Base.unsafe_convert(Ref{T}, rt))
-        ps = Ptr{UInt8}(Base.unsafe_convert(Ref{S}, rs)) + offset
-        Base._memcpy!(pt, ps, sizeof(T))
-    end
-    return rt[] 
-end
-
-function check_getbyoffset(T, s, offset)
-    S = typeof(s)
-    isbitstype(T) || throw(ArgumentError("Can only cast into bitstype."))
-    isbitstype(S) || throw(ArgumentError("Can only cast from bitstype."))
-    @assert offset >= 0
-    sizeof(T) + offset <= sizeof(S) || throw(ArgumentError("Can only cast between types of equal size."))
-end
-
-function getbyoffset(T, s, offset)
-    @boundscheck check_getbyoffset(T, s, offset)
-    unsafe_getbyoffset(T, s, offset)
-end
-
 get_record_constants(::Type{StaticIAEAHeader{rc, Nf, Ni}}) where {rc, Nf, Ni} = rc
 get_Ni(::Type{StaticIAEAHeader{rc, Nf, Ni}}) where {rc, Nf, Ni} = Ni
 get_Nf(::Type{StaticIAEAHeader{rc, Nf, Ni}}) where {rc, Nf, Ni} = Nf
@@ -67,8 +43,8 @@ function compute_field_offsets_and_size(record_constants::NamedTuple, Nf::Int, N
             :x => 4, :y => 4, :z => 4,
             :u => 4, :v => 4,
             :weight => 4,
-            :Nf => 4*Nf,
-            :Ni => 4*Ni,
+            :extra_floats => 4*Nf,
+            :extra_ints => 4*Ni,
         ]
         if !haskey(record_constants, fieldname)
             push!(pairs, fieldname => offset)
@@ -101,7 +77,7 @@ end
     end
 end
 
-struct CompressedIAEAParticle{H<:StaticIAEAHeader, N}
+struct CompressedIAEAParticle{H<:StaticIAEAHeader, N} <: AbstractIAEAParticle
     header::H
     data::NTuple{N, UInt8}
 end
@@ -124,11 +100,11 @@ get_weight( p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:weight)
 
 function get_extra_floats(p::CompressedIAEAParticle{StaticIAEAHeader{rc, Nf, Ni}}) where {rc, Nf, Ni}
     T = NTuple{Nf, Float32}
-    _get_typ_field(p, Tf, Val(:extra_floats))
+    _get_typ_field(p, T, Val(:extra_floats))
 end
 
 function get_extra_ints(p::CompressedIAEAParticle{StaticIAEAHeader{rc, Nf, Ni}}) where {rc, Nf, Ni}
-    T = NTuple{Nf, Int32}
+    T = NTuple{Ni, Int32}
     _get_typ_field(p, T, Val(:extra_ints))
 end
 
@@ -154,14 +130,15 @@ end
 @generated function _get_typ_field(p::CompressedIAEAParticle{H}, ::Type{T}, ::Val{field}) where {H,T, field}
     rc = get_record_constants(H)
     if haskey(rc, field)
-        ret = rc[field]::T
+        quote
+            rc[field]::T
+        end
     else
-        ret = quote
+        quote
             offset = field_offset($(H()), $(Val(field)))
             return getbyoffset(T, p, offset)
         end
     end
-    return ret
 end
 
 const COMPRESSED_IAEA_PARTICLE_PROPERTY_NAMES = (
@@ -205,11 +182,17 @@ function Base.getproperty(o::CompressedIAEAParticle, prop::Symbol)
     elseif prop === :new_history
         get_new_history(o)
     elseif prop === :extra_floats
-        get_extra_float(o)
+        get_extra_floats(o)
     elseif prop === :extra_ints
         get_extra_ints(o)
     else
         msg = "Unknown property $prop"
         throw(ArgumentError(msg))
     end
+end
+
+Base.show(io::IO, p::CompressedIAEAParticle) = show_iaea_particle(io, "CompressedIAEAParticle", p)
+
+function Base.:(==)(p1::P, p2::P) where {P <: CompressedIAEAParticle}
+    p1 === p2
 end

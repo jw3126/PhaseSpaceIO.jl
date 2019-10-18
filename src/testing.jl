@@ -1,6 +1,6 @@
 module Testing
 using PhaseSpaceIO: IAEAParticle, ParticleType,
-EGSHeader, EGSParticle, photon, electron, positron
+EGSHeader, EGSParticle, photon, electron, positron, compute_u_v_w
 using PhaseSpaceIO: Latch
 export arbitrary
 export assetpath
@@ -16,13 +16,13 @@ function arbitrary(::Type{IAEAParticle{Nf,Ni}}) where {Nf, Ni}
     x = randn(Float32)
     y = randn(Float32)
     z = randn(Float32)
-    u = randn(Float64)
-    v = randn(Float64)
-    w = randn(Float64)
-    scale = 1/sqrt(u^2 + v^2 + w^2)
+    u = randn(Float32)
+    v = randn(Float32)
+    w = randn(Float32)
+    scale = 1f0/sqrt(u^2 + v^2 + w^2)
     u *= scale
     v *= scale
-    w *= scale
+    u,v,w = compute_u_v_w(u, v, sign(w))
     new_history  = rand(Bool)
     extra_floats = tuple(randn(Float32, Nf)...)
     extra_ints   = tuple(rand(Int32, Ni)...)
