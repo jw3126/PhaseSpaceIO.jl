@@ -70,7 +70,7 @@ function unsafe_getbyoffset(::Type{T}, s::S, offset::Int) where {T, S}
         ps = Ptr{UInt8}(Base.unsafe_convert(Ref{S}, rs)) + offset
         Base._memcpy!(pt, ps, sizeof(T))
     end
-    return rt[] 
+    return rt[]
 end
 
 function check_getbyoffset(T, s, offset)

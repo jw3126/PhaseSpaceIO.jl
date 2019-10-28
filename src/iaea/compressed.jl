@@ -189,7 +189,9 @@ function Base.getproperty(o::CompressedIAEAParticle, prop::Symbol)
     end
 end
 
-Base.show(io::IO, p::CompressedIAEAParticle) = show_iaea_particle(io, "CompressedIAEAParticle", p)
+function Base.show(io::IO, p::CompressedIAEAParticle)
+    show_iaea_particle(io, "CompressedIAEAParticle", p)
+end
 
 function Base.:(==)(p1::P, p2::P) where {P <: CompressedIAEAParticle}
     p1 === p2

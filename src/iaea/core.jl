@@ -84,11 +84,9 @@ function IAEAParticle(;typ,E,weight=1,x,y,z,
 end
 
 particle_type(p::IAEAParticle) = p.typ
-
-function show_iaea_particle(io::IO, calle::AbstractString, p)
-    print(io, "$calle(typ=$(p.typ), E=$(p.E), weight=$(p.weight), x=$(p.x), y=$(p.y), z=$(p.z), u=$(p.u), v=$(p.v), w=$(p.w), new_history=$(p.new_history), extra_floats=$(p.extra_floats), extra_ints=$(p.extra_ints))")
+function Base.show(io::IO, p::IAEAParticle)
+    kwshow(io, p)
 end
-Base.show(io::IO, p::IAEAParticle) = show_iaea_particle(io, "IAEAParticle", p)
 
 function Base.isapprox(p1::AbstractIAEAParticle, p2::AbstractIAEAParticle;kw...)
     p1.typ == p2.typ  &&

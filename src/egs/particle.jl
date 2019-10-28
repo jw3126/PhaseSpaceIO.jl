@@ -222,17 +222,6 @@ function EGSParticle(;latch , new_history=true, E,x,y,u,v,w,weight=1f0,zlast=not
     EGSParticle(latch, new_history, E, x, y, u, v, w, weight, zlast)
 end
 
-function kwshow(io::IO, o)
-    print(io, typeof(o).name, "(")
-    for pname in propertynames(o)
-        pval = getproperty(o, pname)
-        print(io, string(pname), "=")
-        show(io, pval)
-        print(io, ", ")
-    end
-    print(io, ")")
-end
-
 Base.show(io::IO, o::EGSParticle) = kwshow(io, o)
 
 @inline function Base.getproperty(o::EGSParticle, s::Symbol)

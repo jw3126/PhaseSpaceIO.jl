@@ -31,3 +31,14 @@ end
 @noinline function call_fenced(f::F, arg::A) where {F,A}
     f(arg)
 end
+
+function kwshow(io::IO, o; calle=typeof(o).name)
+    print(io, calle, "(")
+    for pname in propertynames(o)
+        pval = getproperty(o, pname)
+        print(io, string(pname), "=")
+        show(io, pval)
+        print(io, ", ")
+    end
+    print(io, ")")
+end

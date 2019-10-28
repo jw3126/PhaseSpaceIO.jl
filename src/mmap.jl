@@ -85,8 +85,6 @@ function _PhspVector(path::AbstractString, ::FormatEGS)
     PhspVector(io, h)
 end
 
-const EGSVector = PhspVector{P,H} where {P<:EGSParticle, H<:EGSHeader}
-
 function PhspVector(path::AbstractString)
     fmt = guess_format_from_path(path)
     _PhspVector(path, fmt)
