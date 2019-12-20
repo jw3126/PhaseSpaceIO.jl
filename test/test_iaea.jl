@@ -1,9 +1,38 @@
 module TestIAEA
 using Test
 using PhaseSpaceIO
+using PhaseSpaceIO: position
 using PhaseSpaceIO.Testing
 using Setfield
 using PhaseSpaceIO: ptype, read_particle, write_particle, CompressedIAEAParticle
+using StaticArrays
+using LinearAlgebra
+using CoordinateTransformations
+
+@testset "CompressedIAEAParticle" begin
+    path = assetpath("some_file.IAEAphsp")
+    p = first(PhspVector(path))
+
+    # does not throw
+    show(IOBuffer(), p)
+    show(IOBuffer(), [p])
+    p2 = IAEAParticle(p)
+    @test p isa CompressedIAEAParticle
+    @test p2 isa IAEAParticle
+    @test propertynames(p) == propertynames(p2)
+    for prop in propertynames(p)
+        @test getproperty(p, prop) == getproperty(p2, prop)
+    end
+    @test p == p2
+    @test [p] == [p2]
+    pos = @SVector randn(3)
+    dir = normalize(@SVector randn(3))
+    @test (@set position(p) = pos) == (@set position(p2) = pos)
+    @test (@set direction(p) = dir) == (@set direction(p2) = dir)
+
+    trafo = AffineMap(@SMatrix(randn(3,3)), @SVector(randn(3)))
+    @test trafo(p) == trafo(p2)
+end
 
 @testset "IAEA save load with many constants" begin
     mktempdir() do dir
@@ -13,7 +42,7 @@ using PhaseSpaceIO: ptype, read_particle, write_particle, CompressedIAEAParticle
         iaea_writer(path, h) do w
             write(w, p_truth)
         end
-        
+
         r_reloaded, ps_reloaded = phsp_iterator(path) do iter
             iter.header.record_contents, collect(iter)
         end
@@ -25,9 +54,6 @@ using PhaseSpaceIO: ptype, read_particle, write_particle, CompressedIAEAParticle
         v = PhspVector(path)
         @test length(v) == 1
         @test eltype(v) <: CompressedIAEAParticle
-        # does not throws
-        show(IOBuffer(), v)
-        show(IOBuffer(), first(v))
         @test first(v) == p_truth
     end
 end

@@ -82,6 +82,19 @@ struct CompressedIAEAParticle{H<:StaticIAEAHeader, N} <: AbstractIAEAParticle
     data::NTuple{N, UInt8}
 end
 
+function IAEAParticle(p::CompressedIAEAParticle)
+    IAEAParticle(
+        typ=p.typ,
+        E=p.E,
+        weight=p.weight,
+        x=p.x, y=p.y, z=p.z,
+        u=p.u, v=p.v, w=p.w,
+        new_history=p.new_history,
+        extra_floats=p.extra_floats,
+        extra_ints=p.extra_ints,
+    )
+end
+
 function ptype(H::Type{<:StaticIAEAHeader})
     N = sizeof_ptype(H())
     CompressedIAEAParticle{H, N}

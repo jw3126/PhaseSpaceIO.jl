@@ -1,4 +1,3 @@
-__precompile__()
 module PhaseSpaceIO
 using ArgCheck
 using DataStructures

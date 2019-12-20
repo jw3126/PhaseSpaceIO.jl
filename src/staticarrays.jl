@@ -41,6 +41,16 @@ function set_position(p::EGSParticle, pos)
     setproperties(p, (x=x,y=y))
 end
 
+function set_position(p::CompressedIAEAParticle, pos)
+    set_position(IAEAParticle(p), pos)
+end
+function set_direction(p::CompressedIAEAParticle, dir)
+    set_direction(IAEAParticle(p), dir)
+end
+function set_position_direction(p::CompressedIAEAParticle, pos, dir)
+    set_position_direction(IAEAParticle(p), pos, dir)
+end
+
 function set_position_direction(p::EGSParticle, pos, dir)
     x,y = pos
     u,v,w = dir
