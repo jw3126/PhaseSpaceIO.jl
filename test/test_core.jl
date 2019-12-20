@@ -16,7 +16,6 @@ using Base.Meta
             sprop = string(prop)
             @test occursin(sprop, s)
         end
-                     
         ex = Meta.parse(s)
         @test eval(ex) === p
     end

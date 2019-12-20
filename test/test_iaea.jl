@@ -25,6 +25,9 @@ using PhaseSpaceIO: ptype, read_particle, write_particle, CompressedIAEAParticle
         v = PhspVector(path)
         @test length(v) == 1
         @test eltype(v) <: CompressedIAEAParticle
+        # does not throws
+        show(IOBuffer(), v)
+        show(IOBuffer(), first(v))
         @test first(v) == p_truth
     end
 end

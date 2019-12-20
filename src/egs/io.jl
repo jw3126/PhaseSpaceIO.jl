@@ -7,6 +7,15 @@ struct EGSHeader{P<:EGSParticle}
     originalcount::Float32
 end
 
+"""
+    get_originalcount(phsp)
+
+Get the number of electrons at the target used to generate the phase space.
+"""
+function get_originalcount(o::EGSHeader)
+    o.originalcount
+end
+
 function read_ZLAST(io::IO)
     mode = prod([read(io, Char) for _ in 1:5])
     if mode == "MODE0"

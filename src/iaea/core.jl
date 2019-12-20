@@ -115,6 +115,10 @@ struct IAEAHeader{Nf, Ni, NT<:NamedTuple}
     end
 end
 
+function get_originalcount(o::IAEAHeader)::Float64
+    parse(Float64, o.attributes[:ORIG_HISTORIES])
+end
+
 struct IAEAPhspIterator{H,I<:IO} <: AbstractPhspIterator
     io::I
     header::H
