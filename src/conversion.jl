@@ -1,3 +1,6 @@
+module Conversion
+
+using PhaseSpaceIO
 using Setfield
 using ArgCheck
 
@@ -57,21 +60,44 @@ function to_egs(p::IAEAParticle)
     )
 end
 
-function phsp_convert(src::AbstractString, dst::IAEAPath;  z)
-    egs_iterator(src) do iter
-        phsp_convert(iter, dst, z=z)
-    end
+function phsp_convert(src::AbstractString, dst::IAEAPath; z)
+    phsp_convert([src], dst, z=z)
 end
 
-@noinline function phsp_convert(iter, dst::IAEAPath; z)
+function phsp_convert(srcs::AbstractVector{<:AbstractString}, dst::IAEAPath;  z)
+    iters = map(egs_iterator, srcs)
+    ret = phsp_convert(iters, dst, z=z)
+    foreach(close, iters)
+    ret
+end
+
+function create_iaea_header(iter; z)
     nt = (z=z,)
     _Nf(::Type{EGSParticle{Nothing}}) = 0
     _Nf(::Type{EGSParticle{Float32}}) = 1
     Nf = _Nf(eltype(iter))
     header = IAEAHeader{1,Nf}(nt)
-    iaea_writer(dst, header) do w
-        for p in iter
-            write(w, to_iaea(p, z=z))
+    return header
+end
+
+@noinline function phsp_append(writer, iter, z)
+    for p in iter
+        write(writer, to_iaea(p, z=z))
+    end
+end
+
+@noinline function phsp_convert(iters, dst::IAEAPath; z)
+    if isempty(iters)
+        return
+    else
+        iter = first(iters)
+    end
+    h = create_iaea_header(iter, z=z)
+    iaea_writer(dst, h) do w
+        for iter in iters
+            phsp_append(w, iter, z)
         end
     end
 end
+
+end#module

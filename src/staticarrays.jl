@@ -1,4 +1,4 @@
-import Setfield
+using Setfield: Setfield, @lens
 using StaticArrays: @SVector, normalize
 using Setfield: setproperties
 export position
