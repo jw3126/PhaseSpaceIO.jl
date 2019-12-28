@@ -17,6 +17,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 [compat]
 ArgCheck = "1.0"
 Setfield = ">= 0.4.0"
+StaticArrays = "0.12"
 julia = "≥ 1.1.0"
 
 [extras]
