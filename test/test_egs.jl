@@ -29,7 +29,7 @@ end
 
 @testset "simple phase spaces" begin
     
-    path = assetpath("photon_electron_positron.egsphsp")
+    path = testdatapath("photon_electron_positron.egsphsp")
     h_truth = PhaseSpaceIO.EGSHeader{EGSParticle{Float32}}(3, 1, 1.0f0, 0.83312154f0, 1.0f0)
     ps_truth = [
                 EGSParticle(

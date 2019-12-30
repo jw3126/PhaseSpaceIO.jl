@@ -16,12 +16,12 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 ArgCheck = "1.0"
-JSON = "0.21"
-DataStructures = "0.17"
-StatsBase = "0.32"
-CoordinateTransformations = "0.5"
+CoordinateTransformations = ">= 0.5"
+DataStructures = ">= 0.17"
+JSON = ">= 0.21"
 Setfield = ">= 0.4.0"
-StaticArrays = "0.12"
+StaticArrays = ">= 0.10"
+StatsBase = ">= 0.32"
 julia = "≥ 1.1.0"
 
 [extras]

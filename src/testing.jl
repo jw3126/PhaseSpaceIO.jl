@@ -3,9 +3,9 @@ using PhaseSpaceIO: IAEAParticle, ParticleType,
 EGSHeader, EGSParticle, photon, electron, positron, compute_u_v_w
 using PhaseSpaceIO: Latch
 export arbitrary
-export assetpath
+export testdatapath
 
-function assetpath(args...)
+function testdatapath(args...)
     joinpath(@__DIR__, "..", "test", "assets", args...)
 end
 

@@ -7,6 +7,10 @@ struct EGSHeader{P<:EGSParticle}
     originalcount::Float32
 end
 
+function Base.show(io::IO, o::EGSHeader)
+    kwshow(io, o, calle=typeof(o))
+end
+
 """
     get_originalcount(phsp)
 

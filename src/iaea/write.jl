@@ -86,6 +86,11 @@ function println_kv(io::IO, k, v)
     println(io)
 end
 
+function println_kv_get(io::IO, attr::AbstractDict, k, default)
+    v = get(attr, k, default)
+    println_kv(io, k, v)
+end
+
 function println_particle_count(io, d, p::ParticleType)
     key = if p == photon
             :PHOTONS
@@ -104,8 +109,9 @@ function println_particle_count(io, d, p::ParticleType)
 end
 
 function print_header(io::IO, w::IAEAPhspWriter)
-    println_kv(io, :IAEA_INDEX, "0 // test header")
-    println_kv(io, :TITLE, "")
+    attr = w.record_contents.attributes
+    println_kv_get(io, attr, :IAEA_INDEX, "0 // test header")
+    println_kv_get(io, attr, :TITLE, "")
     println_kv(io, :FILE_TYPE, 0)
     r = w.record_contents
     ga = w.generated_attributes
@@ -114,36 +120,37 @@ function print_header(io::IO, w::IAEAPhspWriter)
     println_kv(io, :CHECKSUM, checksum)
     print_record_contents(io, r)
     println_kv(io, :RECORD_LENGTH, record_length)
+
     println_kv(io, :BYTE_ORDER, "1234")
-    println_kv(io, :ORIG_HISTORIES, "$(typemax(Int32))")
+    println_kv_get(io, attr, :ORIG_HISTORIES, "$(typemax(Int32))")
     println_kv(io, :PARTICLES, ga.length)
 
     for p in keys(ga.counts)
         println_particle_count(io, ga.counts, p)
     end
 
-    println_kv(io, :TRANSPORT_PARAMETERS, "")
-    println_kv(io, :MACHINE_TYPE, "")
-    println_kv(io, :MONTE_CARLO_CODE_VERSION, "")
+    println_kv_get(io, attr, :TRANSPORT_PARAMETERS, "")
+    println_kv_get(io, attr, :MACHINE_TYPE, "")
+    println_kv_get(io, attr, :MONTE_CARLO_CODE_VERSION, "")
     # 
-    println_kv(io, :GLOBAL_PHOTON_ENERGY_CUTOFF, 0.0)
-    println_kv(io, :GLOBAL_PARTICLE_ENERGY_CUTOFF, 0.0)
-    println_kv(io, :COORDINATE_SYSTEM_DESCRIPTION, "")
+    println_kv_get(io, attr, :GLOBAL_PHOTON_ENERGY_CUTOFF, 0.0)
+    println_kv_get(io, attr, :GLOBAL_PARTICLE_ENERGY_CUTOFF, 0.0)
+    println_kv_get(io, attr, :COORDINATE_SYSTEM_DESCRIPTION, "")
 
     println(io)
     println(io, "// OPTIONAL INFORMATION")
     println(io)
-    println_kv(io, :BEAM_NAME, "")
-    println_kv(io, :FIELD_SIZE, "")
-    println_kv(io, :NOMINAL_SSD, "")
-    println_kv(io, :MC_INPUT_FILENAME, "")
-    println_kv(io, :VARIANCE_REDUCTION_TECHNIQUES, "")
-    println_kv(io, :INITIAL_SOURCE_DESCRIPTION, "")
-    println_kv(io, :PUBLISHED_REFERENCE, "")
-    println_kv(io, :AUTHORS, "")
-    println_kv(io, :INSTITUTION, "")
-    println_kv(io, :LINK_VALIDATION, "")
-    println_kv(io, :ADDITIONAL_NOTES, "Generated via PhaseSpaceIO.jl")
+    println_kv_get(io, attr, :BEAM_NAME, "")
+    println_kv_get(io, attr, :FIELD_SIZE, "")
+    println_kv_get(io, attr, :NOMINAL_SSD, "")
+    println_kv_get(io, attr, :MC_INPUT_FILENAME, "")
+    println_kv_get(io, attr, :VARIANCE_REDUCTION_TECHNIQUES, "")
+    println_kv_get(io, attr, :INITIAL_SOURCE_DESCRIPTION, "")
+    println_kv_get(io, attr, :PUBLISHED_REFERENCE, "")
+    println_kv_get(io, attr, :AUTHORS, "")
+    println_kv_get(io, attr, :INSTITUTION, "")
+    println_kv_get(io, attr, :LINK_VALIDATION, "")
+    println_kv_get(io, attr, :ADDITIONAL_NOTES, "Generated via PhaseSpaceIO.jl")
     # # TODO:
     # println_kv(io, :STATISTICAL_INFORMATION_PARTICLES, "")
     stats = """

@@ -10,7 +10,7 @@ using LinearAlgebra
 using CoordinateTransformations
 
 @testset "CompressedIAEAParticle" begin
-    path = assetpath("some_file.IAEAphsp")
+    path = testdatapath("some_file.IAEAphsp")
     p = first(PhspVector(path))
 
     # does not throw
@@ -59,7 +59,7 @@ end
 end
 
 @testset "similar_header" begin
-    path = assetpath("some_file.IAEAphsp")
+    path = testdatapath("some_file.IAEAphsp")
     h = phsp_iterator(PhaseSpaceIO.similar_header, path)
     @test typeof(h) == typeof(IAEAHeader{0,1}())
     ps = phsp_iterator(collect, path)
@@ -95,7 +95,7 @@ end
         0.53259337f0, 0.3302265f0, -0.7792912f0, 
         true, (), (13,))
     
-    path = assetpath("some_file.IAEAphsp")
+    path = testdatapath("some_file.IAEAphsp")
     ps = iaea_iterator(collect, path)
     @test length(ps) == 1
     @test first(ps) == p_ref
@@ -113,7 +113,7 @@ end
 end
 
 @testset "test IAEAPhspIterator" begin
-    path = assetpath("some_file.IAEAphsp")
+    path = testdatapath("some_file.IAEAphsp")
     phsp = iaea_iterator(path)
     @test length(phsp) == 1
     @test eltype(phsp) === IAEAParticle{0,1}

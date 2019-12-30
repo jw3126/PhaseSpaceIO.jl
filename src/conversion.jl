@@ -1,5 +1,6 @@
 module Conversion
 
+using DataStructures
 using PhaseSpaceIO
 using Setfield
 using ArgCheck
@@ -71,12 +72,18 @@ function phsp_convert(srcs::AbstractVector{<:AbstractString}, dst::IAEAPath;  z)
     ret
 end
 
-function create_iaea_header(iter; z)
+function _create_iaea_header(iters; z)
+    iter = first(iters)
+    originalcount = sum(iters) do iter
+        iter.header.originalcount
+    end
     nt = (z=z,)
     _Nf(::Type{EGSParticle{Nothing}}) = 0
     _Nf(::Type{EGSParticle{Float32}}) = 1
     Nf = _Nf(eltype(iter))
-    header = IAEAHeader{1,Nf}(nt)
+    H = IAEAHeader{1,Nf}
+    d = OrderedDict(:ORIG_HISTORIES => string(originalcount))
+    header = H(nt, d)
     return header
 end
 
@@ -89,10 +96,8 @@ end
 @noinline function phsp_convert(iters, dst::IAEAPath; z)
     if isempty(iters)
         return
-    else
-        iter = first(iters)
     end
-    h = create_iaea_header(iter, z=z)
+    h = _create_iaea_header(iters, z=z)
     iaea_writer(dst, h) do w
         for iter in iters
             phsp_append(w, iter, z)

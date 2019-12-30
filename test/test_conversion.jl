@@ -41,19 +41,21 @@ using Setfield
 end
 
 @testset "phsp_convert" begin
-
-    src = assetpath("photon_electron_positron.egsphsp")
+    src = testdatapath("photon_electron_positron.egsphsp")
     dst = IAEAPath(tempname())
     z = rand(Float32)
 
     phsp_convert(src, dst, z=z)
-    ps_egs = phsp_iterator(collect, src)
-    ps_iaea = phsp_iterator(collect, dst)
+    ps_egs = PhspVector(src)
+    ps_iaea = PhspVector(dst)
     ps_iaea2 = map(ps_egs) do p
         to_iaea(p,z=z)
     end
 
     @test ps_iaea == ps_iaea2
+    orig_egs = ps_egs.header.originalcount
+    orig_iaea = parse(Float32, ps_iaea.header.attributes[:ORIG_HISTORIES])
+    @test orig_egs == orig_iaea
 end
 
 end#module
