@@ -1,5 +1,5 @@
-include("perf.jl")
 include("test_optional.jl")
+include("perf.jl")
 include("test_conversion.jl")
 include("test_iaea.jl")
 include("test_compressed.jl")

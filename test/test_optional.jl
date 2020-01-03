@@ -45,7 +45,9 @@ end
         p = @set direction(p) = @SVector[0,0,1]
         z_to = randn()
         p2 = @inferred propagate_z(p, z_to)
-        @test p2 === @set position(p)[3] = z_to
+        p2_expected =@set position(p)[3] = position(p2)[3]
+        @test position(p2)[3] ≈ z_to
+        @test p2 === p2_expected
     end
 
     dir = normalize([0,1,1])
