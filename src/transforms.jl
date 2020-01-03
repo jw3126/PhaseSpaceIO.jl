@@ -20,34 +20,29 @@ for P in [EGSParticle, IAEAParticle, CompressedIAEAParticle]
 end
 
 """
-    propagate_z(p, z_from, z_to)
+    propagate_z(p, z)
 
-Propagate particle `p` from `z = z_from` to `z = z_to`.
+Propagate particle `p` such that `p.z=z`
 """
-function propagate_z(p, z_from, z_to)
+function propagate_z(p::P, z) where {P}
+    @argcheck has_z(P)
     pos = position(p)
-    is3d = length(pos) == 3
-    if z_from == nothing
-        z_from = pos[3]
-    end
-    if is3d
-        @check z_from ≈ pos[3]
-    end
-    t = (z_to - z_from) / p.w
-
-    if is3d
-        dir = direction(p)
-    else
-        u,v,w = direction(p)
-        dir = @SVector[u,v]
-    end
-    p2 = @set position(p) = pos + t * dir
-    if is3d
-        if z_to == 0
-            @check abs(z_to - p2.z) < sqrt(eps(Float32))
-        else
-            @check z_to ≈ p2.z
-        end
-    end
-    p2
+    dir = direction(p)
+    z_to = z
+    z_from = pos[3]
+    t = (z_to - z_from) / dir[3]
+    @set position(p) = pos + t * dir
 end
+
+export SetZ
+"""
+
+    SetZ(z)(p::EGSParticle)::EGSParticleZ
+
+Set the `z` coordinate of `p`.
+"""
+struct SetZ
+    z::Float32
+end
+
+(f::SetZ)(p::EGSParticle) = @set p.z = f.z

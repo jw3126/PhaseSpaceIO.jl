@@ -14,11 +14,19 @@ using Setfield
 using Test
 using LinearAlgebra
 
+@testset "SetZ" begin
+    p = arbitrary(EGSParticle{Float32})
+    z = randn(Float32)
+    p2 = SetZ(z)(p)
+    @test p2 isa EGSParticleZ
+    @test p2.z === z
+    @test p2 === @set p.z = z
+end
+
 @testset "propagate_z" begin
     for p in [
-        # (position=randn(3), direction=randn(3)),
-        arbitrary(EGSParticle{Float32}),
-        arbitrary(EGSParticle{Nothing}),
+        arbitrary(EGSParticleZ{Float32}),
+        arbitrary(EGSParticleZ{Nothing}),
         arbitrary(IAEAParticle{1,1}),
         arbitrary(IAEAParticle{0,1}),
         arbitrary(IAEAParticle{0,0}),
@@ -26,19 +34,8 @@ using LinearAlgebra
 
         p = @set direction(p) = [0,0,1f0]
         z_to = randn()
-        if p isa IAEAParticle
-            z_from = nothing
-        else
-            z_from = randn()
-        end
-        p2 = @inferred propagate_z(p, z_from, z_to)
-        @test direction(p2) == direction(p)
-        @test position(p2)[1] == position(p)[1]
-        @test position(p2)[2] == position(p)[2]
-        @test get(position(p2), 3, z_to) ≈ z_to
-
-        @test propertynames(p2) == propertynames(p)
-        @test typeof(p2) == typeof(p)
+        p2 = @inferred propagate_z(p, z_to)
+        @test p2 === @set position(p)[3] = z_to
     end
 
     dir = normalize([0,1,1])
@@ -47,18 +44,22 @@ using LinearAlgebra
     p = arbitrary(IAEAParticle{0,0})
     @set! position(p) = pos
     @set! direction(p) = dir
-    p2 = propagate_z(p, nothing, 0.0)
+    p2 = propagate_z(p, 0.0)
     @test p2 == (@set position(p) = pos_new)
 
     dir = normalize([0,1,1])
-    pos = randn(2)
-    z_from = randn()
-    z_to = z_from + 100.0
-    p = arbitrary(EGSParticle{Nothing})
+    pos = randn(Float32, 3)
+    z_to = pos[3] + 100
+    p = arbitrary(EGSParticleZ{Nothing})
     @set! position(p) = pos
     @set! direction(p) = dir
-    p2 = propagate_z(p, z_from, z_to)
-    @test p2 == (@set position(p) = pos + [0, 100])
+    p2 = propagate_z(p, z_to)
+    x,y,z=pos
+    pos_new = [x, y+100, z+100]
+    @test position(p2) == pos_new
+
+    p = arbitrary(EGSParticle{Nothing})
+    @test_throws ArgumentError propagate_z(p, 1f0)
 end
 
 @testset "position, direction" begin
