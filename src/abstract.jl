@@ -1,6 +1,6 @@
 abstract type AbstractPhspIterator end
 abstract type AbstractParticle end
-abstract type AbstractIAEAParticle end
+abstract type AbstractIAEAParticle <: AbstractParticle end
 
 abstract type Format end
 struct FormatEGS <: Format end

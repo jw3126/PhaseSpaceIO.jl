@@ -1,4 +1,4 @@
-export EGSParticle, Latch, BitRegions
+export EGSParticle, EGSParticleZ, Latch, BitRegions
 export @BitRegions
 
 include("particle.jl")

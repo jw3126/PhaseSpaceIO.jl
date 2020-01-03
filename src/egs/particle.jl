@@ -169,62 +169,77 @@ end
 
 Base.show(io::IO, latch::Latch) = kwshow(io, latch)
 
-#### EGSParticle
-struct EGSParticle{ZLAST <: Union{Nothing,Float32}}
+abstract type AbstractEGSParticle <: AbstractParticle end
+################################################################################
+##### EGSParticle
+################################################################################
+struct GeneralizedEGSParticle{ZLAST <: Union{Nothing,Float32}, Z <: Union{Nothing, Float32}} <: AbstractEGSParticle
     _latch::Latch
     _E::Float32 # sign bit new histrory
     _x::Float32
     _y::Float32
+    _z::Z       # maybe a z value
     _u::Float32
     _v::Float32
     _weight::Float32 # sign bit sign w
     _zlast::ZLAST
 end
 
-Format(p::EGSParticle) = FormatEGS()
+const EGSParticle{ZLAST} = GeneralizedEGSParticle{ZLAST, Nothing}
+const EGSParticleZ{ZLAST} = GeneralizedEGSParticle{ZLAST, Float32}
+
+Format(p::GeneralizedEGSParticle) = FormatEGS()
 
 # TODO HACKY
-Base.isapprox(p1::EGSParticle, p2::EGSParticle) = p1 === p2
+Base.isapprox(p1::GeneralizedEGSParticle, p2::GeneralizedEGSParticle) = p1 === p2
 
-function Base.propertynames(o::EGSParticle)
-    (:latch, :new_history, :E, :x, :y, :u, :v, :w, :weight, :zlast)
+function Base.propertynames(o::GeneralizedEGSParticle)
+    (:latch, :new_history, :E, :x, :y, :z, :u, :v, :w, :weight, :zlast)
 end
 
-function Setfield.setproperties(o::EGSParticle, props::NamedTuple)
-    EGSParticle(
+function Setfield.setproperties(o::GeneralizedEGSParticle, props::NamedTuple)
+    GeneralizedEGSParticle(
         get(props, :latch, o.latch),
         get(props, :new_history, o.new_history),
         get(props, :E, o.E),
         get(props, :x, o.x),
         get(props, :y, o.y),
+        get(props, :z, o.z),
         get(props, :u, o.u),
         get(props, :v, o.v),
         get(props, :w, o.w),
         get(props, :weight, o.weight),
         get(props, :zlast, o.zlast),
     )
-
 end
 
-function EGSParticle(latch::Latch, new_history::Bool, E, x, y, u, v, w, weight, zlast)
-    @argcheck weight >= 0
-    @argcheck E >= 0
-    @argcheck Float32(u^2 + v^2 + w^2) ≈ 1
-    charge = latch.charge
-    E_rest = rest_energy_by_charge(charge)
-    E_tot = kin2total(Float32(E), E_rest)
-    _E = Float32((-1)^new_history * E_tot)
-    _weight = Float32(sign(w) * weight)
-    EGSParticle(latch, _E, Float32(x), Float32(y), Float32(u), Float32(v), _weight, zlast)
+_convertz(z::Nothing) = z
+_convertz(z::Number) = Float32(z)
+
+for P in [:EGSParticle, :EGSParticleZ, :GeneralizedEGSParticle]
+    @eval function $P(latch::Latch, new_history::Bool, E, x, y, z, u, v, w, weight, zlast)
+        @argcheck weight >= 0
+        @argcheck E >= 0
+        @argcheck Float32(u^2 + v^2 + w^2) ≈ 1
+        charge = latch.charge
+        E_rest = rest_energy_by_charge(charge)
+        E_tot = kin2total(Float32(E), E_rest)
+        _E = Float32((-1)^new_history * E_tot)
+        _weight = Float32(sign(w) * weight)
+        GeneralizedEGSParticle(latch, _E,
+           Float32(x), Float32(y), _convertz(z),
+           Float32(u), Float32(v), _weight, zlast,
+          )::$P
+    end
+    @eval function $P(;latch , new_history=true, E,x,y,z=nothing,u,v,w,weight=1f0,zlast=nothing)
+        $P(latch, new_history, E, x, y, z, u, v, w, weight, zlast)
+    end
 end
 
-function EGSParticle(;latch , new_history=true, E,x,y,u,v,w,weight=1f0,zlast=nothing)
-    EGSParticle(latch, new_history, E, x, y, u, v, w, weight, zlast)
-end
+Base.show(io::IO, o::EGSParticle) = kwshow(io, o, calle="EGSParticle")
+Base.show(io::IO, o::EGSParticleZ) = kwshow(io, o, calle="EGSParticleZ")
 
-Base.show(io::IO, o::EGSParticle) = kwshow(io, o)
-
-@inline function Base.getproperty(o::EGSParticle, s::Symbol)
+@inline function Base.getproperty(o::GeneralizedEGSParticle, s::Symbol)
     if s == :latch
         get_latch(o)
     elseif s == :E
@@ -233,6 +248,8 @@ Base.show(io::IO, o::EGSParticle) = kwshow(io, o)
         get_x(o)
     elseif s == :y
         get_y(o)
+    elseif s == :z
+        get_z(o)
     elseif s == :u
         get_u(o)
     elseif s == :v
@@ -249,7 +266,7 @@ Base.show(io::IO, o::EGSParticle) = kwshow(io, o)
         throw(ErrorException("$o does not have property $s"))
     end
 end
-        
+
 function kin2total(Ekin::Float32, E_rest::Float64)
     Float32(Float64(Ekin) + E_rest)
 end
@@ -262,23 +279,24 @@ function rest_energy_by_charge(charge::Int)
     ifelse(charge == 0, 0., 0.511)
 end
 
-get_latch(o::EGSParticle) = getfield(o, :_latch)
-function get_E(o::EGSParticle) 
+get_latch(o::GeneralizedEGSParticle) = getfield(o, :_latch)
+function get_E(o::GeneralizedEGSParticle) 
     E_tot = abs(getfield(o, :_E))
     E_rest = rest_energy_by_charge(o.latch.charge)
     total2kin(E_tot, E_rest)
 end
 
-get_x(o::EGSParticle) = getfield(o, :_x)
-get_y(o::EGSParticle) = getfield(o, :_y)
-get_u(o::EGSParticle) = getfield(o, :_u)
-get_v(o::EGSParticle) = getfield(o, :_v)
+get_x(o::GeneralizedEGSParticle) = getfield(o, :_x)
+get_y(o::GeneralizedEGSParticle) = getfield(o, :_y)
+get_z(o::GeneralizedEGSParticle) = getfield(o, :_z)
+get_u(o::GeneralizedEGSParticle) = getfield(o, :_u)
+get_v(o::GeneralizedEGSParticle) = getfield(o, :_v)
 
-get_weight(o::EGSParticle) = abs(getfield(o, :_weight))
-get_zlast(o::EGSParticle)  = getfield(o, :_zlast)
-get_new_history(o::EGSParticle) = signbit(getfield(o, :_E))
+get_weight(o::GeneralizedEGSParticle) = abs(getfield(o, :_weight))
+get_zlast(o::GeneralizedEGSParticle)  = getfield(o, :_zlast)
+get_new_history(o::GeneralizedEGSParticle) = signbit(getfield(o, :_E))
 
-function get_w(o::EGSParticle)
+function get_w(o::GeneralizedEGSParticle)
     u = Float64(get_u(o))
     v = Float64(get_v(o))
     sign_w = sign(getfield(o, :_weight))
@@ -292,7 +310,7 @@ function get_w(o::EGSParticle)
     Float32(w64)
 end
 
-function particle_type(p::EGSParticle)
+function particle_type(p::GeneralizedEGSParticle)
     c = p.latch.charge
     if c == -1
         electron
@@ -304,7 +322,7 @@ function particle_type(p::EGSParticle)
     end
 end
 
-isphoton(o::EGSParticle) = o.latch.charge == 0
-iselectron(o::EGSParticle) = o.latch.charge == -1
-ispositron(o::EGSParticle) = o.latch.charge == 1
+isphoton(  o::GeneralizedEGSParticle) = o.latch.charge == 0
+iselectron(o::GeneralizedEGSParticle) = o.latch.charge == -1
+ispositron(o::GeneralizedEGSParticle) = o.latch.charge == 1
 

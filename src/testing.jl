@@ -1,5 +1,5 @@
 module Testing
-using PhaseSpaceIO: IAEAParticle, ParticleType,
+using PhaseSpaceIO: IAEAParticle, ParticleType, GeneralizedEGSParticle,
 EGSHeader, EGSParticle, photon, electron, positron, compute_u_v_w
 using PhaseSpaceIO: Latch
 export arbitrary
@@ -54,12 +54,16 @@ function arbitrary(::Type{Latch})
     Latch(charge=rand(-1:1))
 end
 
-function arbitrary(P::Type{EGSParticle{ZLAST}};
+arbitrary_z(::Type{Nothing}) = nothing
+arbitrary_z(::Type{Float32}) = randn(Float32)
+
+function arbitrary(P::Type{GeneralizedEGSParticle{ZLAST,Z}};
         latch=arbitrary(Latch),
         E = rand(Float32),
         x = randn(Float32),
         y = randn(Float32),
-        ) where {ZLAST}
+        z = arbitrary_z(Z),
+        ) where {ZLAST,Z}
 
     u = randn()
     v = randn()
@@ -75,13 +79,13 @@ function arbitrary(P::Type{EGSParticle{ZLAST}};
     else
         zlast = randn(Float32)
     end
-    
-    EGSParticle(
+    GeneralizedEGSParticle(
         latch=latch,
         E=E,
         weight=weight,
         x=x,
         y=y,
+        z=z,
         u=u,
         v=v,
         w=w,
