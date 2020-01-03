@@ -30,6 +30,16 @@ end
         arbitrary(IAEAParticle{1,1}),
         arbitrary(IAEAParticle{0,1}),
         arbitrary(IAEAParticle{0,0}),
+        (
+         position=@SVector(randn(3)),
+         direction = normalize(@SVector(randn(3))),
+        ),
+        (
+         position=@SVector(randn(3)),
+         direction = normalize(@SVector(randn(3))),
+         E = rand(),
+         weight = rand(),
+        )
         ]
 
         p = @set direction(p) = [0,0,1f0]

@@ -25,7 +25,9 @@ end
 Propagate particle `p` such that `p.z=z`
 """
 function propagate_z(p::P, z) where {P}
-    @argcheck has_z(P)
+    if P <: AbstractParticle
+        @argcheck has_z(P)
+    end
     pos = position(p)
     dir = direction(p)
     z_to = z

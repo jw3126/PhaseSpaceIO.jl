@@ -4,8 +4,11 @@ using Setfield: setproperties
 export position
 export direction
 
-function position end
-function direction end
+position(o) = o.position
+direction(o) = o.direction
+set_position(o, pos)  = setproperties(o, (position=pos,))
+set_direction(o, dir) = setproperties(o, (direction=dir,))
+set_position_direction(o, pos, dir) = setproperties(o, (position=pos, direction=dir))
 
 Setfield.set(o, ::typeof(@lens position(_)), val) = set_position(o, val)
 Setfield.set(o, ::typeof(@lens direction(_)), val) = set_direction(o, val)
@@ -33,7 +36,7 @@ function position(p::P, z=nothing) where {P <: AbstractParticle}
     end
 end
 
-function set_direction(p, dir)
+function set_direction(p::AbstractParticle, dir)
     u,v,w = dir
     setproperties(p, (u=u,v=v,w=w))
 end
