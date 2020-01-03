@@ -1,3 +1,4 @@
+include("perf.jl")
 include("test_optional.jl")
 include("test_conversion.jl")
 include("test_iaea.jl")

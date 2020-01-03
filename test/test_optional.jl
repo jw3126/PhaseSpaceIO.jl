@@ -42,7 +42,7 @@ end
         )
         ]
 
-        p = @set direction(p) = [0,0,1f0]
+        p = @set direction(p) = @SVector[0,0,1]
         z_to = randn()
         p2 = @inferred propagate_z(p, z_to)
         @test p2 === @set position(p)[3] = z_to
