@@ -15,11 +15,12 @@ using PhaseSpaceIO: Format, FormatEGS, FormatIAEA
     mktempdir() do dir
         for len in [1,2,3,4,10,100,rand(1000:2000)]
             ps = [arbitrary(P) for _ in 1:len]
-            if Format(first(ps)) isa FormatEGS
-                path = joinpath(dir, "phsp.egsphsp")
+            ext = if Format(first(ps)) isa FormatEGS
+                ".egsphsp"
             else
-                path = joinpath(dir, "phsp.IAEAheader")
+                ".IAEAheader"
             end
+            path = joinpath(dir, "phsp" * ext)
             phsp_write(path, ps)
 
             ps1 = phsp_iterator(collect, path)
@@ -34,13 +35,27 @@ using PhaseSpaceIO: Format, FormatEGS, FormatIAEA
             @test first(ps) == first(ps2)
             @test last(ps) == last(ps2)
             @test ps1 == ps2
-            # for (p1, p2) in zip(ps1, ps2)
-            #     @test p1.u == p2.u
-            #     @test p1.v == p2.v
-            #     @test p1.w == p2.w
-            #     @test p1 == p2
-            # end
+
         end
+    end
+    mktempdir() do dir
+        # MultiPhspVector
+        ps = [arbitrary(P) for _ in 1:100]
+        pss = Iterators.partition(ps, 5)
+        paths = String[]
+        ext = if Format(first(ps)) isa FormatEGS
+            ".egsphsp"
+        else
+            ".IAEAheader"
+        end
+        for (i, psi) in enumerate(Iterators.partition(ps, 5))
+            path = joinpath(dir, "phsp$i" * ext)
+            push!(paths, path)
+            phsp_write(path, psi)
+        end
+        phsp = MultiPhspVector(paths)
+        @test phsp isa MultiPhspVector
+        @test phsp == ps
     end
 end
 

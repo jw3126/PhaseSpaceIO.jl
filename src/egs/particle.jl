@@ -72,7 +72,7 @@ function Base.propertynames(latch::Latch)
     (:multicross, :charge, :creation, :visited, :brems)
 end
 
-function Base.getproperty(o::Latch, s::Symbol)
+@inline function Base.getproperty(o::Latch, s::Symbol)
     if s == :multicross
         get_multicross(o)
     elseif s == :charge
@@ -280,7 +280,7 @@ function rest_energy_by_charge(charge::Int)
 end
 
 get_latch(o::GeneralizedEGSParticle) = getfield(o, :_latch)
-function get_E(o::GeneralizedEGSParticle) 
+@inline function get_E(o::GeneralizedEGSParticle) 
     E_tot = abs(getfield(o, :_E))
     E_rest = rest_energy_by_charge(o.latch.charge)
     total2kin(E_tot, E_rest)

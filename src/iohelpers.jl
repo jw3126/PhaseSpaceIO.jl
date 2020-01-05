@@ -85,3 +85,10 @@ function getbyoffset(T, s, offset)
     @boundscheck check_getbyoffset(T, s, offset)
     unsafe_getbyoffset(T, s, offset)
 end
+
+if VERSION < v"1.4"
+    function only(itr)
+        @argcheck length(itr) == 1
+        first(itr)
+    end
+end
