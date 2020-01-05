@@ -271,7 +271,7 @@ function kin2total(Ekin::Float32, E_rest::Float64)
     Float32(Float64(Ekin) + E_rest)
 end
 
-function total2kin(Etotal::Float32, E_rest::Float64)
+function total2kin(Etotal::Float32, E_rest::Float64)::Float32
     Float32(Float64(Etotal) - E_rest)
 end
 
@@ -280,9 +280,12 @@ function rest_energy_by_charge(charge::Int)
 end
 
 get_latch(o::GeneralizedEGSParticle) = getfield(o, :_latch)
-@inline function get_E(o::GeneralizedEGSParticle) 
+function get_E(o::GeneralizedEGSParticle)
     E_tot = abs(getfield(o, :_E))
-    E_rest = rest_energy_by_charge(o.latch.charge)
+    # sadly o.latch.charge is too much for the compiler
+    l = get_latch(o)
+    c = get_charge(l)
+    E_rest = rest_energy_by_charge(c)
     total2kin(E_tot, E_rest)
 end
 

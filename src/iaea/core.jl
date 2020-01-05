@@ -102,6 +102,17 @@ end
 struct IAEAHeader{Nf, Ni, NT<:NamedTuple}
     record_contents::NT
     attributes::OrderedDict{Symbol, String}
+    function IAEAHeader{Nf, Ni, NT}(
+            rc::NT=NamedTuple(),
+            raw=OrderedDict{Symbol,String}()) where {Nf, Ni, NT <: NamedTuple}
+        @argcheck Ni isa Int
+        @argcheck Nf isa Int
+        for (keyword,val) in pairs(rc)
+            @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
+            @argcheck val isa Float32
+        end
+        new{Nf, Ni,NT}(rc, raw)
+    end
 end
 
 function IAEAHeader{Nf, Ni}(
