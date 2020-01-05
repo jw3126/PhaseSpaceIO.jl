@@ -102,17 +102,18 @@ end
 struct IAEAHeader{Nf, Ni, NT<:NamedTuple}
     record_contents::NT
     attributes::OrderedDict{Symbol, String}
-    function IAEAHeader{Nf, Ni}(
-            rc::NamedTuple=NamedTuple(),
-            raw=OrderedDict{Symbol,String}()) where {Nf, Ni}
+end
 
-        for (keyword,val) in pairs(rc)
-            @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
-        end
-        rc32 = map(Float32, rc)
-        NT = typeof(rc32)
-        new{Nf, Ni,NT}(rc32, raw)
+function IAEAHeader{Nf, Ni}(
+        rc::NamedTuple=NamedTuple(),
+        raw=OrderedDict{Symbol,String}()) where {Nf, Ni}
+
+    for (keyword,val) in pairs(rc)
+        @argcheck keyword in [:x, :y, :z, :u, :v, :w, :weight]
     end
+    rc32 = map(Float32, rc)
+    NT = typeof(rc32)
+    IAEAHeader{Nf, Ni,NT}(rc32, raw)
 end
 
 function get_originalcount(o::IAEAHeader)::Float64

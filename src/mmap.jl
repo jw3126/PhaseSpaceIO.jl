@@ -134,8 +134,8 @@ function reduce_headers(headers::AbstractVector{<: EGSHeader})
 end
 
 function reduce_headers(headers::AbstractVector{<:IAEAHeader})
-    H = unique(typeof, headers)
-    record_contents = only(unique(h -> h.record_contents, headers))
+    H::Type = only(unique(map(typeof, headers)))
+    record_contents = only(unique(map(h -> h.record_contents, headers)))
     attributes = OrderedDict{Symbol, String}()
     orig_hist = 0
     for h in headers
@@ -148,9 +148,7 @@ function reduce_headers(headers::AbstractVector{<:IAEAHeader})
     end
     attributes[:ORIG_HISTORIES] = string(orig_hist)
     @label after_orig_histories
-    @show H
     ret = H(record_contents, attributes)
-    @show typeof(ret)
     ret
 end
 
