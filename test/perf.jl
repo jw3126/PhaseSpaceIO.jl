@@ -1,17 +1,42 @@
 module Perf
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
+using Test
+using PhaseSpaceIO.Getters
+
+@testset "Getters don't allocate" begin
+    PS = [
+        EGSParticle{Nothing}, 
+        EGSParticle{Float32}, 
+        IAEAParticle{0,0},
+        IAEAParticle{2,1},
+    ]
+    @testset "P = $P" for P in PS
+        ps = [arbitrary(P) for _ in 1:10^3]
+        getters = [E,x,y,z, u,v,w]
+        @testset "f = $f" for f in getters
+             T = typeof(f(first(ps)))
+             out = similar(ps, T)
+             map!(f, out, ps)
+             bytes = @allocated map!(f, out, ps)
+             @test bytes == 0
+        end
+    end
+end
+
+@noinline function sum_E(ps)
+    sum(p->p.E, ps)
+end
 
 function compute_sum_E_mmap(path)
     ps = PhspVector(path)
-    sum(p->p.E, ps)
+    sum_E(ps)
 end
 function compute_sum_E_iter(path)
-    phsp_iterator(path) do iter
-        sum(p->p.E, iter)
-    end
+    phsp_iterator(sum_E, path)
 end
-ncase = 10^7
+
+ncase = 10^6
 for (P, ext) in [
         (EGSParticle{Float32}, ".egsphsp"),
         (IAEAParticle{0,0}, ".IAEAphsp"),

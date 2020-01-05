@@ -4,14 +4,15 @@ using PhaseSpaceIO
 using PhaseSpaceIO.Testing
 using PhaseSpaceIO: Format, FormatEGS, FormatIAEA
 
-@testset "mmap $P" for P in [EGSParticle{Nothing},
-                          EGSParticle{Float32},
-                          IAEAParticle{0,0},
-                          IAEAParticle{1,0},
-                          IAEAParticle{0,1},
-                          IAEAParticle{rand(0:3), rand(0:3)},
-                         ]
-
+PS = [
+    EGSParticle{Nothing},
+    EGSParticle{Float32},
+    IAEAParticle{0,0},
+    IAEAParticle{1,0},
+    IAEAParticle{0,1},
+    IAEAParticle{rand(0:3), rand(0:3)},
+]
+@testset "PhspVector $P" for P in PS
     mktempdir() do dir
         for len in [1,2,3,4,10,100,rand(1000:2000)]
             ps = [arbitrary(P) for _ in 1:len]
@@ -38,10 +39,13 @@ using PhaseSpaceIO: Format, FormatEGS, FormatIAEA
 
         end
     end
+end
+
+@testset "MultiPhspVector $P" for P in PS
     mktempdir() do dir
         # MultiPhspVector
-        ps = [arbitrary(P) for _ in 1:100]
-        pss = Iterators.partition(ps, 5)
+        n = rand(10:100)
+        ps = [arbitrary(P) for _ in 1:n]
         paths = String[]
         ext = if Format(first(ps)) isa FormatEGS
             ".egsphsp"
