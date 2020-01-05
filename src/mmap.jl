@@ -1,4 +1,5 @@
 export PhspVector
+export MultiPhspVector
 using Mmap: Mmap
 
 """
@@ -102,3 +103,62 @@ for (f, args) in [
 end
 
 Base.getindex(o::PhspVector, inds...) = view(o, inds...)
+
+struct MultiPhspVector{P,H} <: AbstractVector{P}
+    header::H # egs header can only contain typemax(Int32) particles
+    phsps::Vector{PhspVector{P,H}}
+    offsets::Vector{Int64}
+end
+
+function MultiPhspVector(phsps)
+    @argcheck length(unique(typeof, phsps)) == 1
+    header = reduce_headers(map(phsp -> phsp.header, phsps))
+    offsets = cumsum(map(length, phsps))
+    MultiPhspVector(header, phsps, offsets)
+end
+
+function MultiPhspVector(paths::AbstractVector{<: AbstractString})
+    phsps = map(PhspVector, paths)
+    MultiPhspVector(phsps)
+end
+
+function reduce_headers(headers::AbstractVector{<: EGSHeader})
+    H = eltype(headers)
+    @argcheck typeof(first(headers)) == eltype(headers)
+    particlecount = sum(h -> h.particlecount, headers)
+    photoncount = sum(h->h.photoncount, headers)
+    max_E_kin = maximum(h-> h.max_E_kin, headers)
+    min_E_kin_electrons = minimum(h->h.min_E_kin_electrons, headers)
+    originalcount = sum(h->h.originalcount, headers)
+    H(particlecount, photoncount, max_E_kin, min_E_kin_electrons, originalcount)
+end
+
+function reduce_headers(headers::AbstractVector{<:IAEAHeader})
+    H = unique(typeof, headers)
+    record_contents = only(unique(h -> h.record_contents, headers))
+    attributes = OrderedDict{Symbol, String}()
+    orig_hist = 0
+    for h in headers
+        n = get(h.attributes, :ORIG_HISTORIES, nothing)
+        if n == nothing
+            @goto after_orig_histories
+        else
+            orig_hist += parse(Int64, n)
+        end
+    end
+    attributes[:ORIG_HISTORIES] = string(orig_hist)
+    @label after_orig_histories
+    @show H
+    ret = H(record_contents, attributes)
+    @show typeof(ret)
+    ret
+end
+
+Base.size(o::MultiPhspVector) = (last(o.offsets),)
+function Base.getindex(o::MultiPhspVector, i::Integer)
+    iphsp = searchsortedfirst(o.offsets, i)
+    phsp = o.phsps[iphsp]
+    offset = get(o.offsets, iphsp-1, 0)
+    ilocal = i - offset
+    phsp[ilocal]
+end
