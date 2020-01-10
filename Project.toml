@@ -16,13 +16,13 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 ArgCheck = "1.0"
-CoordinateTransformations = ">= 0.5"
-DataStructures = ">= 0.17"
-JSON = ">= 0.21"
-Setfield = ">= 0.4.0"
-StaticArrays = ">= 0.10"
-StatsBase = ">= 0.32"
-julia = "≥ 1.1.0"
+CoordinateTransformations = "0.5"
+DataStructures = "0.17"
+JSON = "0.21"
+Setfield = "0.5, 0.6"
+StaticArrays = "0.10, 0.11, 0.12"
+StatsBase = "0.32"
+julia = "1.1"
 
 [extras]
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
