@@ -25,6 +25,7 @@ julia> path = joinpath(dir, "hello")
 
 julia> iaea_writer(path, RecordContents{0,1}()) do w
            for p in ps
+           
                write(w,p)
            end
        end
