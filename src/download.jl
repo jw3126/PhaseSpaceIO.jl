@@ -1,6 +1,6 @@
 export iaea_download
 
-import JSON
+using JSON: JSON
 const IAEA_PHSP_URLS = JSON.parsefile(
     joinpath(@__DIR__, "phsplinks.json"))
 
