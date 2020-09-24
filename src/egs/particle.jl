@@ -19,7 +19,7 @@ const MASK_CHARGE        = 0b01100000000000000000000000000000
 """
 The bit region in which a particle was created. 0 for primary particles.
 """
-const MASK_CREATION      = 0b00011111000000000000000000000000 
+const MASK_CREATION      = 0b00011111000000000000000000000000
 
 """
 Marks the bit regions that were traversed by particle.
@@ -73,15 +73,15 @@ function Base.propertynames(latch::Latch)
 end
 
 @inline function Base.getproperty(o::Latch, s::Symbol)
-    if s == :multicross
+    if s === :multicross
         get_multicross(o)
-    elseif s == :charge
+    elseif s === :charge
         get_charge(o)
-    elseif s == :creation
+    elseif s === :creation
         get_creation(o)
-    elseif s == :visited
+    elseif s === :visited
         get_visited(o)
-    elseif s == :brems
+    elseif s === :brems
         get_brems(o)
     else
         @argcheck s in propertynames(o)
@@ -240,30 +240,30 @@ Base.show(io::IO, o::EGSParticle) = kwshow(io, o, calle="EGSParticle")
 Base.show(io::IO, o::EGSParticleZ) = kwshow(io, o, calle="EGSParticleZ")
 
 @inline function Base.getproperty(o::GeneralizedEGSParticle, s::Symbol)
-    if s == :latch
+    if s === :latch
         get_latch(o)
-    elseif s == :E
+    elseif s === :E
         get_E(o)
-    elseif s == :x
+    elseif s === :x
         get_x(o)
-    elseif s == :y
+    elseif s === :y
         get_y(o)
-    elseif s == :z
+    elseif s === :z
         get_z(o)
-    elseif s == :u
+    elseif s === :u
         get_u(o)
-    elseif s == :v
+    elseif s === :v
         get_v(o)
-    elseif s == :w
+    elseif s === :w
         get_w(o)
-    elseif s == :weight
+    elseif s === :weight
         get_weight(o)
-    elseif s == :zlast
+    elseif s === :zlast
         get_zlast(o)
-    elseif s == :new_history
+    elseif s === :new_history
         get_new_history(o)
     else
-        throw(ErrorException("$o does not have property $s"))
+        @argcheck s in propertynames(o)
     end
 end
 

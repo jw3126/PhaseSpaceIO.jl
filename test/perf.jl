@@ -6,8 +6,8 @@ using PhaseSpaceIO.Getters
 
 @testset "Getters don't allocate" begin
     PS = [
-        EGSParticle{Nothing}, 
-        EGSParticle{Float32}, 
+        EGSParticle{Nothing},
+        EGSParticle{Float32},
         IAEAParticle{0,0},
         IAEAParticle{2,1},
     ]
@@ -41,7 +41,8 @@ for (P, ext) in [
         (EGSParticle{Float32}, ".egsphsp"),
         (IAEAParticle{0,0}, ".IAEAphsp"),
         ]
-    @show P
+    println("*"^80)
+    println("Benchmarking $P")
     ps = [arbitrary(P) for _ in 1:ncase]
     path = tempname() * ext
     path2 = tempname() * ext
@@ -56,7 +57,7 @@ for (P, ext) in [
     println("compute_sum_E_iter")
     compute_sum_E_iter(path2)
     @time compute_sum_E_iter(path)
-
 end
+println("*"^80)
 
 end
