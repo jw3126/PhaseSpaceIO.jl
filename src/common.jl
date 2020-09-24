@@ -32,7 +32,7 @@ end
     f(arg)
 end
 
-function kwshow(io::IO, o; calle=typeof(o).name)
+function kwshow(io::IO, o; calle=nameof(typeof(o)))
     print(io, calle, "(")
     for pname in propertynames(o)
         pval = getproperty(o, pname)
