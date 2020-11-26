@@ -2,7 +2,7 @@ module Conversion
 
 using DataStructures
 using PhaseSpaceIO
-using Setfield
+using Accessors
 using ArgCheck
 
 function compute_extra_ints(p::EGSParticle)::NTuple{1, Int32}

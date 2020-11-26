@@ -1,5 +1,5 @@
 module TestCompressed
-using Setfield: @set
+using Accessors: @set
 using Test
 using PhaseSpaceIO
 const PHSP = PhaseSpaceIO

@@ -1,6 +1,5 @@
-using Setfield: Setfield, @lens
 using StaticArrays: @SVector, normalize
-using Setfield: setproperties
+using Accessors: Accessors, setproperties
 export position
 export direction
 
@@ -10,8 +9,8 @@ set_position(o, pos)  = setproperties(o, (position=pos,))
 set_direction(o, dir) = setproperties(o, (direction=dir,))
 set_position_direction(o, pos, dir) = setproperties(o, (position=pos, direction=dir))
 
-Setfield.set(o, ::typeof(@lens position(_)), val) = set_position(o, val)
-Setfield.set(o, ::typeof(@lens direction(_)), val) = set_direction(o, val)
+Accessors.set(o, ::typeof(position), val) = set_position(o, val)
+Accessors.set(o, ::typeof(direction), val) = set_direction(o, val)
 
 function direction(p::AbstractParticle)
     @SVector [p.u, p.v, p.w]

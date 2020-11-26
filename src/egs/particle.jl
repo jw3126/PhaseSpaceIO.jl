@@ -1,4 +1,4 @@
-import Setfield
+import Accessors
 
 struct Latch
     _data::UInt32
@@ -88,7 +88,7 @@ end
     end
 end
 
-function Setfield.setproperties(o::Latch, props::NamedTuple)
+function Accessors.setproperties(o::Latch, props::NamedTuple)
     Latch(;
         multicross=get(props, :multicross, o.multicross),
         charge=get(props, :charge, o.charge),
@@ -197,7 +197,7 @@ function Base.propertynames(o::GeneralizedEGSParticle)
     (:latch, :new_history, :E, :x, :y, :z, :u, :v, :w, :weight, :zlast)
 end
 
-function Setfield.setproperties(o::GeneralizedEGSParticle, props::NamedTuple)
+function Accessors.setproperties(o::GeneralizedEGSParticle, props::NamedTuple)
     GeneralizedEGSParticle(
         get(props, :latch, o.latch),
         get(props, :new_history, o.new_history),

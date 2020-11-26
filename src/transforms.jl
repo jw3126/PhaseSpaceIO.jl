@@ -1,5 +1,5 @@
 using CoordinateTransformations
-using Setfield
+using Accessors
 
 # P = AbstractParticle does not suffice
 for P in [EGSParticle, IAEAParticle, CompressedIAEAParticle]

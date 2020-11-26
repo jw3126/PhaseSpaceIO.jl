@@ -5,13 +5,13 @@ using PhaseSpaceIO
 using PhaseSpaceIO.Testing
 using PhaseSpaceIO: position
 using PhaseSpaceIO.Conversion: to_egs, to_iaea, phsp_convert
-using Setfield
+using Accessors
 
 @testset "to_egs, to_iaea" begin
     for _ in 1:100
         Ni, Nf = rand(0:3,2)
         p_iaea = arbitrary(IAEAParticle{Nf, Ni})
-        @set! p_iaea.typ = rand([electron, positron, photon])
+        @reset p_iaea.typ = rand([electron, positron, photon])
         p_egs = to_egs(p_iaea)
         p_iaea2 = to_iaea(p_egs,z=p_iaea.z)
         @test position(p_egs) == position(p_iaea)[1:2]
@@ -20,14 +20,14 @@ using Setfield
         @test p_egs.E ≈ p_iaea.E
         @test p_egs.new_history == p_iaea.new_history
         @test p_egs.weight == p_iaea.weight
-        
+
         @test position(p_iaea) ≈ position(p_iaea2)
         @test direction(p_iaea) ≈ direction(p_iaea2)
         @test particle_type(p_iaea2) == particle_type(p_iaea)
         @test p_iaea2.E ≈ p_iaea.E
         @test p_iaea2.new_history == p_iaea.new_history
         @test p_egs.weight == p_iaea.weight
-        
+
         p_iaea_bad = @set p_iaea.typ = rand([proton, neutron])
         @test_throws ArgumentError to_egs(p_iaea_bad)
     end

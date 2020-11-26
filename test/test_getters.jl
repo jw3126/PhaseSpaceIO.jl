@@ -3,7 +3,7 @@ using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
 using PhaseSpaceIO.Getters
-using Setfield
+using Accessors
 
 @testset "test getters" begin
     p = arbitrary(IAEAParticle{0,1})

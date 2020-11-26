@@ -5,12 +5,12 @@ using CoordinateTransformations
 using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
-using Setfield
+using Accessors
 using PhaseSpaceIO: position
 using PhaseSpaceIO
 using PhaseSpaceIO: propagate_z, position
 using PhaseSpaceIO.Testing
-using Setfield
+using Accessors
 using Test
 using LinearAlgebra
 
@@ -54,8 +54,8 @@ end
     pos = [0,0,-100]
     pos_new = [0,100,0]
     p = arbitrary(IAEAParticle{0,0})
-    @set! position(p) = pos
-    @set! direction(p) = dir
+    p = @set position(p) = pos
+    p = @set direction(p) = dir
     p2 = propagate_z(p, 0.0)
     @test p2 == (@set position(p) = pos_new)
 
@@ -63,8 +63,8 @@ end
     pos = randn(Float32, 3)
     z_to = pos[3] + 100
     p = arbitrary(EGSParticleZ{Nothing})
-    @set! position(p) = pos
-    @set! direction(p) = dir
+    p = @set position(p) = pos
+    p = @set direction(p) = dir
     p2 = propagate_z(p, z_to)
     x,y,z=pos
     pos_new = [x, y+100, z+100]

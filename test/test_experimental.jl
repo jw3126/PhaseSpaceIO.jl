@@ -1,5 +1,5 @@
 module TestExperimental
-using Setfield
+using Accessors
 using PhaseSpaceIO
 using Test
 using PhaseSpaceIO.Testing
@@ -12,7 +12,7 @@ using PhaseSpaceIO.Testing
     @test c(iter) == iter
 end
 
-@testset "Setfield" begin
+@testset "Accessors" begin
     p = IAEAParticle(photon,2,3,4,5,6,0,0,1,true,(),())
     q = @set p.x = 10
     @test q.x == 10

@@ -3,7 +3,7 @@ using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
 using PhaseSpaceIO: ptype, EGSHeader, write_header, write_particle, EGSParticle
-using Setfield
+using Accessors
 
 @testset "test egs_iterator egs_writer" begin
     for _ in 1:100
@@ -28,7 +28,7 @@ using Setfield
 end
 
 @testset "simple phase spaces" begin
-    
+
     path = testdatapath("photon_electron_positron.egsphsp")
     h_truth = PhaseSpaceIO.EGSHeader{EGSParticle{Float32}}(3, 1, 1.0f0, 0.83312154f0, 1.0f0)
     ps_truth = [
@@ -87,7 +87,7 @@ end
     @test 0b00000000001000000000000010010100 === UInt32(l)
 
     l = @set l.creation = 3
-    @set! l.visited = @BitRegions(1,3,23)
+    l = @set l.visited = @BitRegions(1,3,23)
     @test 0b00000011100000000000000000001010 === UInt32(l)
 end
 
@@ -95,10 +95,10 @@ end
     p = EGSParticle(latch=Latch(multicross=false, charge=0, creation=0, visited=@BitRegions(), brems=false, ), new_history=true, E=0.74988735f0, x=-0.51910776f0, y=0.22886558f0, u=0.26358783f0, v=-0.9477993f0, w=-0.17943771f0, weight=4.7387686f0, zlast=nothing, )
     @test particle_type(p) === photon
     @test isphoton(p)
-    @set! p.latch.charge = -1
+    p = @set p.latch.charge = -1
     @test iselectron(p)
     @test particle_type(p) === electron
-    @set! p.latch.charge = 1
+    p = @set p.latch.charge = 1
     @test particle_type(p) === positron
     @test ispositron(p)
 end

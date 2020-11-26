@@ -3,7 +3,7 @@ using Test
 using PhaseSpaceIO
 using PhaseSpaceIO: position
 using PhaseSpaceIO.Testing
-using Setfield
+using Accessors
 using PhaseSpaceIO: ptype, read_particle, write_particle, CompressedIAEAParticle
 using StaticArrays
 using LinearAlgebra
