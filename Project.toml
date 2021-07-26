@@ -5,6 +5,7 @@ version = "0.6.0"
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
+ConstructionBase = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
@@ -15,8 +16,9 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
-ArgCheck = "1.0, 2.0"
 Accessors = "0.1, 0.2"
+ArgCheck = "1.0, 2.0"
+ConstructionBase = "1.3"
 CoordinateTransformations = "0.5, 0.6"
 DataStructures = "0.17, 0.18"
 JSON = "0.21"

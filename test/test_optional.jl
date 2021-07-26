@@ -6,7 +6,6 @@ using Test
 using PhaseSpaceIO
 using PhaseSpaceIO.Testing
 using Accessors
-using PhaseSpaceIO: position
 using PhaseSpaceIO
 using PhaseSpaceIO: propagate_z, position
 using PhaseSpaceIO.Testing

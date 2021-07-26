@@ -1,5 +1,6 @@
 using ArgCheck
 using StaticArrays
+using ConstructionBase
 
 export StaticIAEAHeader
 const LEGAL_RECORD_CONSTANT_NAMES = (:typ, :E, :x, :y, :z, :u, :v, :weight)
@@ -106,7 +107,7 @@ get_Esigned(     p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:E 
 get_x(      p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:x  ))
 get_y(      p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:y  ))
 get_z(      p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:z  ))
-     
+
 get_u(      p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:u  ))
 get_v(      p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:v  ))
 get_weight( p::CompressedIAEAParticle) = _get_typ_field(p, Float32, Val(:weight))
@@ -169,6 +170,22 @@ const COMPRESSED_IAEA_PARTICLE_PROPERTY_NAMES = (
 
 function Base.propertynames(o::CompressedIAEAParticle)
     COMPRESSED_IAEA_PARTICLE_PROPERTY_NAMES
+end
+
+function ConstructionBase.getproperties(o::CompressedIAEAParticle)
+    (typ=get_typ(o),
+     E=get_E(o),
+     weight=get_weight(o),
+     x=get_x(o),
+     y=get_y(o),
+     z=get_z(o),
+     u=get_u(o),
+     v=get_v(o),
+     w=get_w(o),
+     new_history=get_new_history(o),
+     extra_floats=get_extra_floats(o),
+     extra_ints=get_extra_ints(o),
+    )
 end
 
 function Base.getproperty(o::CompressedIAEAParticle, prop::Symbol)

@@ -1,4 +1,5 @@
 import Accessors
+import ConstructionBase
 
 struct Latch
     _data::UInt32
@@ -70,6 +71,13 @@ Base.show(io::IO, r::BitRegions) = show_bitregions(io, r)
 
 function Base.propertynames(latch::Latch)
     (:multicross, :charge, :creation, :visited, :brems)
+end
+function ConstructionBase.getproperties(o::Latch)
+    (multicross = get_multicross(o),
+     charge = get_charge(o),
+     creation = get_creation(o),
+     visited = get_visited(o),
+     brems = get_brems(o))
 end
 
 @inline function Base.getproperty(o::Latch, s::Symbol)
@@ -238,6 +246,21 @@ end
 
 Base.show(io::IO, o::EGSParticle) = kwshow(io, o, calle="EGSParticle")
 Base.show(io::IO, o::EGSParticleZ) = kwshow(io, o, calle="EGSParticleZ")
+
+function ConstructionBase.getproperties(o::GeneralizedEGSParticle)
+    (latch=get_latch(o),
+        new_history=get_new_history(o),
+        E=get_E(o),
+        x=get_x(o),
+        y=get_y(o),
+        z=get_z(o),
+        u=get_u(o),
+        v=get_v(o),
+        w=get_w(o),
+        weight=get_weight(o),
+        zlast=get_zlast(o),
+    )
+end
 
 @inline function Base.getproperty(o::GeneralizedEGSParticle, s::Symbol)
     if s === :latch
