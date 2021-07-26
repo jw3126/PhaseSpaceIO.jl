@@ -1,6 +1,6 @@
 name = "PhaseSpaceIO"
 uuid = "de004529-e20a-5d30-89d8-7739140c50e5"
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
